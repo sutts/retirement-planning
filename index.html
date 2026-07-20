@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NZ Retirement Income & Capital Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+      }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
+
+<header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-emerald-500 text-slate-950 rounded-lg font-bold">NZ</div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight">Retirement Planner</h1>
+        <p class="text-xs text-slate-400">Interactive Capital & Cashflow Modeling</p>
+      </div>
+    </div>
+    <button id="exportCsv" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 rounded-lg font-semibold text-sm transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+      <span>Export CSV</span>
+    </button>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="summaryCards">
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+        <span>Portfolio Longevity</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </div>
+      <div id="statLongevity" class="text-2xl font-bold text-slate-900">--</div>
+      <p id="statLongevitySub" class="text-xs text-slate-500 mt-1">Based on projected returns</p>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+        <span>Balance at Age 80</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+      </div>
+      <div id="statAge80" class="text-2xl font-bold text-slate-900">$0</div>
+      <p class="text-xs text-slate-500 mt-1">Partner 1 Age 80 benchmark</p>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+        <span>Balance at Age 90</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+      </div>
+      <div id="statAge90" class="text-2xl font-bold text-slate-900">$0</div>
+      <p class="text-xs text-slate-500 mt-1">Partner 1 Age 90 benchmark</p>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+        <span>Balance at Age 100</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+      </div>
+      <div id="statAge100" class="text-2xl font-bold text-slate-900">$0</div>
+      <p class="text-xs text-slate-500 mt-1">Partner 1 Age 100 benchmark</p>
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+    <aside class="lg:col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6 h-fit">
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+        <span>Parameters & Inputs</span>
+      </h2>
+
+      <div class="space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">1. Portfolio & Economics</h3>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Starting Balance (KiwiSaver + Savings)</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">$</span>
+            <input type="number" id="startBalance" value="1500000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-700 mb-1">Gross Return (%)</label>
+            <input type="number" id="returnRate" step="0.1" value="4.0" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-700 mb-1">Tax Drag (%)</label>
+            <input type="number" id="taxRate" step="0.1" value="0.8" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-700 mb-1">Inflation (%)</label>
+            <input type="number" id="inflationRate" step="0.1" value="2.5" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4 pt-2 border-t border-slate-100">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Ages & NZ Super</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Partner 1 Age</label>
+            <input type="number" id="ageP1" value="59" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Partner 2 Age</label>
+            <input type="number" id="ageP2" value="53" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Super Age (P1)</label>
+            <input type="number" id="superAgeP1" value="63" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Super Age (P2)</label>
+            <input type="number" id="superAgeP2" value="65" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Combined NZ Super / yr (Today's $)</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">$</span>
+            <input type="number" id="annualSuper" value="40000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4 pt-2 border-t border-slate-100">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">3. Phased Spending (Today's $)</h3>
+
+        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
+          <span class="text-xs font-bold text-slate-600 block">Phase 1 (Active Years)</span>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-1">
+              <label class="text-[10px] text-slate-500 block">Duration</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="p1Years" value="10" class="w-full px-2 py-1 border border-slate-300 rounded text-xs">
+                <span class="text-xs text-slate-400">yrs</span>
+              </div>
+            </div>
+            <div class="col-span-2">
+              <label class="text-[10px] text-slate-500 block">Monthly Spend</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
+                <input type="number" id="p1Spend" value="8000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
+          <span class="text-xs font-bold text-slate-600 block">Phase 2 (Passive Years)</span>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-1">
+              <label class="text-[10px] text-slate-500 block">Duration</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="p2Years" value="10" class="w-full px-2 py-1 border border-slate-300 rounded text-xs">
+                <span class="text-xs text-slate-400">yrs</span>
+              </div>
+            </div>
+            <div class="col-span-2">
+              <label class="text-[10px] text-slate-500 block">Monthly Spend</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
+                <input type="number" id="p2Spend" value="6000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
+          <span class="text-xs font-bold text-slate-600 block">Phase 3 (Supportive Years)</span>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-1">
+              <label class="text-[10px] text-slate-500 block">Duration</label>
+              <span class="text-xs text-slate-500 py-1 block">Remainder</span>
+            </div>
+            <div class="col-span-2">
+              <label class="text-[10px] text-slate-500 block">Monthly Spend</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
+                <input type="number" id="p3Spend" value="4000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="lg:col-span-8 space-y-8">
+
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Portfolio Capital Trajectory</h2>
+              <p class="text-xs text-slate-500">Projected year-end balances over 50 years</p>
+            </div>
+            <span id="maxBalanceTag" class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">Peak: $0</span>
+          </div>
+          <div class="h-48 mt-4 w-full bg-slate-50 rounded-lg border border-slate-200/60 p-2 flex items-end relative overflow-hidden" id="balanceChartContainer">
+            <svg id="balanceSvg" class="w-full h-full" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-100">
+          <div class="flex justify-between items-center mb-2">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Income vs. Spending Breakdown</h2>
+              <p class="text-xs text-slate-500">Comparing total expenditures (Rose) with NZ Super income (Emerald)</p>
+            </div>
+          </div>
+          <div class="h-48 mt-4 w-full bg-slate-50 rounded-lg border border-slate-200/60 p-2 flex items-end gap-1" id="flowChartContainer">
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Projection Breakdown</h2>
+            <p class="text-xs text-slate-500">Full financial ledger including gross returns, estimated portfolio tax, and withdrawals</p>
+          </div>
+          <div class="inline-flex bg-slate-100 p-1 rounded-lg text-xs font-medium">
+            <button id="viewYearlyBtn" class="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition">Yearly View</button>
+            <button id="viewMonthlyBtn" class="px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-900 transition">Monthly View (600 Mos)</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto max-h-[500px]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 font-semibold text-slate-600 z-10" id="tableHeader">
+            </thead>
+            <tbody id="projectionTable" class="divide-y divide-slate-100 font-mono">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  let currentViewMode = 'yearly';
+  let calculatedYearlyData = [];
+  let calculatedMonthlyData = [];
+
+  const fmt = new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 });
+
+  function getVal(id, fallback = 0) {
+    const el = document.getElementById(id);
+    if (!el) return fallback;
+    const v = parseFloat(el.value);
+    return isNaN(v) ? fallback : v;
+  }
+
+  function getInputs() {
+    return {
+      startBalance: getVal('startBalance', 1500000),
+      grossReturnRate: getVal('returnRate', 4.0) / 100,
+      taxRate: getVal('taxRate', 0.8) / 100,
+      inflationRate: getVal('inflationRate', 2.5) / 100,
+      ageP1: getVal('ageP1', 59),
+      ageP2: getVal('ageP2', 53),
+      superAgeP1: getVal('superAgeP1', 63),
+      superAgeP2: getVal('superAgeP2', 65),
+      annualSuper: getVal('annualSuper', 40000),
+      p1Years: getVal('p1Years', 10),
+      p2Years: getVal('p2Years', 10),
+      p1Spend: getVal('p1Spend', 8000),
+      p2Spend: getVal('p2Spend', 6000),
+      p3Spend: getVal('p3Spend', 4000)
+    };
+  }
+
+  function calculateProjections() {
+    const p = getInputs();
+    const monthlyData = [];
+    const yearlyData = [];
+
+    let currentBalance = p.startBalance;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+
+    const monthlyGrossRate = Math.pow(1 + p.grossReturnRate, 1/12) - 1;
+    const monthlyTaxRate = Math.pow(1 + p.taxRate, 1/12) - 1;
+    const monthlyInflationRate = Math.pow(1 + p.inflationRate, 1/12) - 1;
+
+    let yearsDepleted = null;
+
+    for (let m = 0; m < 600; m++) {
+      const yearIndex = Math.floor(m / 12);
+
+      const calYear = currentYear + Math.floor((currentMonth + m) / 12);
+      const calMonth = ((currentMonth + m) % 12) + 1;
+
+      const age1 = p.ageP1 + (m / 12);
+      const age2 = p.ageP2 + (m / 12);
+
+      let baseMonthlySpend = p.p3Spend;
+      if (yearIndex < p.p1Years) {
+        baseMonthlySpend = p.p1Spend;
+      } else if (yearIndex < (p.p1Years + p.p2Years)) {
+        baseMonthlySpend = p.p2Spend;
+      }
+
+      const inflationMult = Math.pow(1 + monthlyInflationRate, m);
+      const monthlySpend = baseMonthlySpend * inflationMult;
+
+      let superEligibleRatio = 0;
+      if (age1 >= p.superAgeP1) superEligibleRatio += 0.5;
+      if (age2 >= p.superAgeP2) superEligibleRatio += 0.5;
+
+      const monthlySuperIncome = ((p.annualSuper / 12) * superEligibleRatio) * inflationMult;
+      const netDraw = Math.max(0, monthlySpend - monthlySuperIncome);
+
+      const startCap = currentBalance;
+      let grossGain = 0;
+      let taxPaid = 0;
+      let netGain = 0;
+      let endCap = 0;
+
+      if (startCap > 0) {
+        const taxableBase = Math.max(0, startCap - (netDraw / 2));
+        grossGain = taxableBase * monthlyGrossRate;
+        taxPaid = taxableBase * monthlyTaxRate;
+        netGain = grossGain - taxPaid;
+
+        endCap = startCap - netDraw + netGain;
+
+        if (endCap <= 0) {
+          endCap = 0;
+          if (yearsDepleted === null) {
+            yearsDepleted = Math.ceil((m + 1) / 12);
+          }
+        }
+      } else {
+        endCap = 0;
+      }
+
+      currentBalance = endCap;
+
+      monthlyData.push({
+        monthIdx: m + 1,
+        calYear,
+        calMonth,
+        ageP1: Math.floor(age1),
+        ageP2: Math.floor(age2),
+        startCap,
+        spend: monthlySpend,
+        superInc: monthlySuperIncome,
+        netDraw,
+        grossGain,
+        taxPaid,
+        netGain,
+        endCap
+      });
+    }
+
+    for (let y = 0; y < 50; y++) {
+      const yearMonths = monthlyData.slice(y * 12, (y + 1) * 12);
+      if (!yearMonths.length) break;
+
+      const startCap = yearMonths[0].startCap;
+      const endCap = yearMonths[11].endCap;
+      const spend = yearMonths.reduce((acc, row) => acc + row.spend, 0);
+      const superInc = yearMonths.reduce((acc, row) => acc + row.superInc, 0);
+      const netDraw = yearMonths.reduce((acc, row) => acc + row.netDraw, 0);
+      const grossGain = yearMonths.reduce((acc, row) => acc + row.grossGain, 0);
+      const taxPaid = yearMonths.reduce((acc, row) => acc + row.taxPaid, 0);
+      const netGain = yearMonths.reduce((acc, row) => acc + row.netGain, 0);
+
+      yearlyData.push({
+        year: currentYear + y,
+        yearIdx: y,
+        ageP1: p.ageP1 + y,
+        ageP2: p.ageP2 + y,
+        startCap,
+        spend,
+        superInc,
+        netDraw,
+        grossGain,
+        taxPaid,
+        netGain,
+        endCap
+      });
+    }
+
+    calculatedYearlyData = yearlyData;
+    calculatedMonthlyData = monthlyData;
+
+    return { yearlyData, monthlyData, yearsDepleted, params: p };
+  }
+
+  function updateUI() {
+    const { yearlyData, monthlyData, yearsDepleted, params } = calculateProjections();
+
+    const longevityEl = document.getElementById('statLongevity');
+    const longevitySub = document.getElementById('statLongevitySub');
+
+    if (yearsDepleted === null) {
+      longevityEl.textContent = '50+ Years';
+      longevityEl.className = 'text-2xl font-bold text-emerald-600';
+      longevitySub.textContent = 'Portfolio fully sustains lifestyle';
+    } else {
+      longevityEl.textContent = `${yearsDepleted} Years`;
+      longevityEl.className = 'text-2xl font-bold text-rose-600';
+      longevitySub.textContent = `Capital depleted at P1 age ${params.ageP1 + yearsDepleted}`;
+    }
+
+    const findAgeBalance = (targetAge) => {
+      const row = yearlyData.find(d => d.ageP1 === targetAge);
+      return row ? fmt.format(row.endCap) : 'N/A';
+    };
+
+    document.getElementById('statAge80').textContent = findAgeBalance(80);
+    document.getElementById('statAge90').textContent = findAgeBalance(90);
+    document.getElementById('statAge100').textContent = findAgeBalance(100);
+
+    renderTable();
+    renderNativeCharts(yearlyData);
+  }
+
+  function renderTable() {
+    const thead = document.getElementById('tableHeader');
+    const tbody = document.getElementById('projectionTable');
+
+    if (currentViewMode === 'yearly') {
+      thead.innerHTML = `
+                    <tr>
+                        <th class="py-3 px-3">Year</th>
+                        <th class="py-3 px-3">Ages</th>
+                        <th class="py-3 px-3 text-right">Start Capital</th>
+                        <th class="py-3 px-3 text-right">Spend</th>
+                        <th class="py-3 px-3 text-right">NZ Super</th>
+                        <th class="py-3 px-3 text-right">Net Draw</th>
+                        <th class="py-3 px-3 text-right">Gross Growth</th>
+                        <th class="py-3 px-3 text-right text-amber-600">Tax Drag</th>
+                        <th class="py-3 px-3 text-right">Net Gain</th>
+                        <th class="py-3 px-3 text-right">End Capital</th>
+                    </tr>
+                `;
+      tbody.innerHTML = '';
+      calculatedYearlyData.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = row.endCap === 0 ? 'bg-rose-50/50 hover:bg-rose-100/50' : 'hover:bg-slate-50';
+        tr.innerHTML = `
+                        <td class="py-2.5 px-3 font-semibold text-slate-700">${row.year}</td>
+                        <td class="py-2.5 px-3 text-slate-500">${row.ageP1}/${row.ageP2}</td>
+                        <td class="py-2.5 px-3 text-right">${fmt.format(row.startCap)}</td>
+                        <td class="py-2.5 px-3 text-right text-rose-600">${fmt.format(row.spend)}</td>
+                        <td class="py-2.5 px-3 text-right text-emerald-600">${fmt.format(row.superInc)}</td>
+                        <td class="py-2.5 px-3 text-right">${fmt.format(row.netDraw)}</td>
+                        <td class="py-2.5 px-3 text-right text-slate-500">${fmt.format(row.grossGain)}</td>
+                        <td class="py-2.5 px-3 text-right text-amber-600">-${fmt.format(row.taxPaid)}</td>
+                        <td class="py-2.5 px-3 text-right text-emerald-700 font-medium">${fmt.format(row.netGain)}</td>
+                        <td class="py-2.5 px-3 text-right font-bold text-slate-900">${fmt.format(row.endCap)}</td>
+                    `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      thead.innerHTML = `
+                    <tr>
+                        <th class="py-3 px-3">Month</th>
+                        <th class="py-3 px-3">Date</th>
+                        <th class="py-3 px-3">Ages</th>
+                        <th class="py-3 px-3 text-right">Start Cap</th>
+                        <th class="py-3 px-3 text-right">Spend</th>
+                        <th class="py-3 px-3 text-right">Super</th>
+                        <th class="py-3 px-3 text-right">Net Draw</th>
+                        <th class="py-3 px-3 text-right">Gross Growth</th>
+                        <th class="py-3 px-3 text-right text-amber-600">Tax Drag</th>
+                        <th class="py-3 px-3 text-right">Net Gain</th>
+                        <th class="py-3 px-3 text-right">End Cap</th>
+                    </tr>
+                `;
+      tbody.innerHTML = '';
+      calculatedMonthlyData.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = row.endCap === 0 ? 'bg-rose-50/50 hover:bg-rose-100/50' : 'hover:bg-slate-50';
+        const monthStr = String(row.calMonth).padStart(2, '0');
+        tr.innerHTML = `
+                        <td class="py-2 px-3 font-semibold text-slate-700">M${row.monthIdx}</td>
+                        <td class="py-2 px-3 text-slate-500">${row.calYear}-${monthStr}</td>
+                        <td class="py-2 px-3 text-slate-500">${row.ageP1}/${row.ageP2}</td>
+                        <td class="py-2 px-3 text-right">${fmt.format(row.startCap)}</td>
+                        <td class="py-2 px-3 text-right text-rose-600">${fmt.format(row.spend)}</td>
+                        <td class="py-2 px-3 text-right text-emerald-600">${fmt.format(row.superInc)}</td>
+                        <td class="py-2 px-3 text-right">${fmt.format(row.netDraw)}</td>
+                        <td class="py-2 px-3 text-right text-slate-500">${fmt.format(row.grossGain)}</td>
+                        <td class="py-2 px-3 text-right text-amber-600">-${fmt.format(row.taxPaid)}</td>
+                        <td class="py-2 px-3 text-right text-emerald-700 font-medium">${fmt.format(row.netGain)}</td>
+                        <td class="py-2 px-3 text-right font-bold text-slate-900">${fmt.format(row.endCap)}</td>
+                    `;
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  function renderNativeCharts(yearlyData) {
+    if (!yearlyData.length) return;
+
+    const maxBal = Math.max(...yearlyData.map(d => d.endCap), 100000);
+    document.getElementById('maxBalanceTag').textContent = `Peak: ${fmt.format(maxBal)}`;
+
+    const svg = document.getElementById('balanceSvg');
+    const width = 1000;
+    const height = 200;
+
+    const points = yearlyData.map((d, i) => {
+      const x = (i / (yearlyData.length - 1)) * width;
+      const y = height - ((d.endCap / maxBal) * (height - 20)) - 10;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+
+    const pathD = `M 0,${height} L ${points.join(' L ')} L ${width},${height} Z`;
+    const lineD = `M ${points.join(' L ')}`;
+
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.innerHTML = `
+                <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+                    </linearGradient>
+                </defs>
+                <path d="${pathD}" fill="url(#grad)" />
+                <path d="${lineD}" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" />
+            `;
+
+    const flowContainer = document.getElementById('flowChartContainer');
+    flowContainer.innerHTML = '';
+
+    const maxSpend = Math.max(...yearlyData.map(d => Math.max(d.spend, d.superInc)), 10000);
+
+    yearlyData.forEach(d => {
+      const spendHeightPct = (d.spend / maxSpend) * 100;
+      const superHeightPct = (d.superInc / maxSpend) * 100;
+
+      const col = document.createElement('div');
+      col.className = 'flex-1 h-full flex items-end justify-center gap-[1px] group relative cursor-pointer';
+      col.innerHTML = `
+                    <div class="w-1/2 bg-rose-400 rounded-t-sm group-hover:bg-rose-500 transition-all" style="height: ${spendHeightPct}%;"></div>
+                    <div class="w-1/2 bg-emerald-500 rounded-t-sm group-hover:bg-emerald-600 transition-all" style="height: ${superHeightPct}%;"></div>
+                    <div class="absolute bottom-full mb-2 hidden group-hover:flex flex-col bg-slate-800 text-white text-[10px] p-2 rounded shadow-lg whitespace-nowrap z-30 pointer-events-none">
+                        <span class="font-bold text-slate-300">${d.year} (Age ${d.ageP1})</span>
+                        <span class="text-rose-300">Spend: ${fmt.format(d.spend)}</span>
+                        <span class="text-emerald-300">Super: ${fmt.format(d.superInc)}</span>
+                    </div>
+                `;
+      flowContainer.appendChild(col);
+    });
+  }
+
+  function exportToCSV() {
+    const dataToExport = currentViewMode === 'yearly' ? calculatedYearlyData : calculatedMonthlyData;
+    if (!dataToExport.length) return;
+
+    let headers, rows;
+
+    if (currentViewMode === 'yearly') {
+      headers = ['Year', 'Partner 1 Age', 'Partner 2 Age', 'Starting Balance', 'Annual Spending', 'NZ Super Income', 'Net Draw', 'Gross Investment Growth', 'Tax Drag', 'Net Gain', 'Ending Balance'];
+      rows = dataToExport.map(d => [
+        d.year, d.ageP1, d.ageP2,
+        d.startCap.toFixed(2), d.spend.toFixed(2), d.superInc.toFixed(2),
+        d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2), d.endCap.toFixed(2)
+      ]);
+    } else {
+      headers = ['Month Index', 'Calendar Year', 'Calendar Month', 'Partner 1 Age', 'Partner 2 Age', 'Starting Balance', 'Monthly Spend', 'NZ Super Income', 'Net Draw', 'Gross Investment Growth', 'Tax Drag', 'Net Gain', 'Ending Balance'];
+      rows = dataToExport.map(d => [
+        d.monthIdx, d.calYear, d.calMonth, d.ageP1, d.ageP2,
+        d.startCap.toFixed(2), d.spend.toFixed(2), d.superInc.toFixed(2),
+        d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2), d.endCap.toFixed(2)
+      ]);
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `nz_retirement_${currentViewMode}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const inputIds = [
+      'startBalance', 'returnRate', 'taxRate', 'inflationRate',
+      'ageP1', 'ageP2', 'superAgeP1', 'superAgeP2',
+      'annualSuper', 'p1Years', 'p1Spend', 'p2Years',
+      'p2Spend', 'p3Spend'
+    ];
+
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateUI);
+    });
+
+    document.getElementById('exportCsv').addEventListener('click', exportToCSV);
+
+    const yearBtn = document.getElementById('viewYearlyBtn');
+    const monthBtn = document.getElementById('viewMonthlyBtn');
+
+    yearBtn.addEventListener('click', () => {
+      currentViewMode = 'yearly';
+      yearBtn.className = 'px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition';
+      monthBtn.className = 'px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-900 transition';
+      renderTable();
+    });
+
+    monthBtn.addEventListener('click', () => {
+      currentViewMode = 'monthly';
+      monthBtn.className = 'px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition';
+      yearBtn.className = 'px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-900 transition';
+      renderTable();
+    });
+
+    updateUI();
+  });
+</script>
+</body>
+</html>
