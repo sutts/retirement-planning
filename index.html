@@ -33,7 +33,7 @@
 
 <main class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
 
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="summaryCards">
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" id="summaryCards">
     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
         <span>Portfolio Longevity</span>
@@ -45,11 +45,20 @@
 
     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+        <span>Balance at Age 70</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+      </div>
+      <div id="statAge70" class="text-2xl font-bold text-slate-900">$0</div>
+      <p id="statAge70Sub" class="text-xs text-slate-500 mt-1">P1 Age 70 / P2 Age --</p>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
         <span>Balance at Age 80</span>
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
       </div>
       <div id="statAge80" class="text-2xl font-bold text-slate-900">$0</div>
-      <p class="text-xs text-slate-500 mt-1">Partner 1 Age 80 benchmark</p>
+      <p id="statAge80Sub" class="text-xs text-slate-500 mt-1">P1 Age 80 / P2 Age --</p>
     </div>
 
     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -58,7 +67,7 @@
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
       </div>
       <div id="statAge90" class="text-2xl font-bold text-slate-900">$0</div>
-      <p class="text-xs text-slate-500 mt-1">Partner 1 Age 90 benchmark</p>
+      <p id="statAge90Sub" class="text-xs text-slate-500 mt-1">P1 Age 90 / P2 Age --</p>
     </div>
 
     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -67,7 +76,7 @@
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
       </div>
       <div id="statAge100" class="text-2xl font-bold text-slate-900">$0</div>
-      <p class="text-xs text-slate-500 mt-1">Partner 1 Age 100 benchmark</p>
+      <p id="statAge100Sub" class="text-xs text-slate-500 mt-1">P1 Age 100 / P2 Age --</p>
     </div>
   </section>
 
@@ -449,14 +458,22 @@
       longevitySub.textContent = `Capital depleted at P1 age ${p.ageP1 + yearsDepleted}`;
     }
 
-    const findAgeBalance = (targetAge) => {
-      const row = yearlyData.find(d => d.ageP1 === targetAge);
-      return row ? fmt.format(row.endCap + row.injection) : 'N/A';
+    const findAgeBalanceRow = (targetAge) => {
+      return yearlyData.find(d => d.ageP1 === targetAge);
     };
 
-    document.getElementById('statAge80').textContent = findAgeBalance(80);
-    document.getElementById('statAge90').textContent = findAgeBalance(90);
-    document.getElementById('statAge100').textContent = findAgeBalance(100);
+    const updateBench = (age) => {
+      const row = findAgeBalanceRow(age);
+      const valEl = document.getElementById(`statAge${age}`);
+      const subEl = document.getElementById(`statAge${age}Sub`);
+      if (valEl) valEl.textContent = row ? fmt.format(row.endCap + row.injection) : 'N/A';
+      if (subEl) subEl.textContent = row ? `P1 Age ${age} / P2 Age ${row.ageP2}` : `P1 Age ${age} benchmark`;
+    };
+
+    updateBench(70);
+    updateBench(80);
+    updateBench(90);
+    updateBench(100);
 
     renderTable();
     renderNativeCharts(yearlyData);
