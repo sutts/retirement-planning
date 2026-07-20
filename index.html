@@ -21,15 +21,126 @@
       <div class="p-2 bg-emerald-500 text-slate-950 rounded-lg font-bold">NZ</div>
       <div>
         <h1 class="text-xl font-bold tracking-tight">Retirement Planner</h1>
-        <p class="text-xs text-slate-400">Interactive Capital & Cashflow Modeling</p>
+        <div class="flex items-center gap-2">
+          <p class="text-xs text-slate-400">Interactive Capital & Cashflow Modeling</p>
+          <div id="activeScenarioLabel" class="hidden flex items-center gap-1.5 px-2 py-0.5 bg-emerald-900/50 border border-emerald-700/50 rounded-full">
+            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+            <span id="activeScenarioName" class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider"></span>
+          </div>
+        </div>
       </div>
     </div>
-    <button id="exportCsv" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 rounded-lg font-semibold text-sm transition">
+    <button id="exportCsv" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
       <span>Export CSV</span>
     </button>
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+        <button id="newScenario" class="hidden sm:inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition" title="Start new calculation">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          <span class="hidden lg:inline">New</span>
+        </button>
+        <button id="saveScenario" class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 rounded-lg font-semibold text-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span id="saveScenarioText">Save to List</span>
+        </button>
+        <button id="viewScenarios" class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+          <span>Manage Scenarios</span>
+        </button>
+    </div>
   </div>
 </header>
+
+<!-- Dialog Modal -->
+<div id="dialogModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="dialog-title" role="dialog" aria-modal="true">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div id="dialogIconContainer" class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+            <!-- Icon injected here -->
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-bold text-slate-900" id="dialog-title">
+              <!-- Title injected here -->
+            </h3>
+            <div class="mt-2">
+              <p class="text-sm text-slate-500" id="dialog-message">
+                <!-- Message injected here -->
+              </p>
+            </div>
+            <div id="dialogInputContainer" class="mt-4 hidden">
+              <input type="text" id="dialogInput" class="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-slate-300 rounded-md py-2 px-3 border" placeholder="">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="dialogActions" class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+        <!-- Buttons injected here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scenario List Modal -->
+<div id="scenariosModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="
+      document.getElementById('scenariosModal').classList.add('hidden');
+      const params = new URLSearchParams(window.location.search);
+      params.delete('view');
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    "></div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900" id="modal-title">Saved Scenarios</h3>
+            <p class="text-xs text-slate-500">Manage your local planning scenarios</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="downloadAllScenarios" class="inline-flex items-center space-x-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg font-semibold text-xs transition" title="Download all scenarios as JSON">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Download All</span>
+            </button>
+            <label for="uploadScenariosFile" class="cursor-pointer inline-flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold text-xs transition" title="Upload scenarios from JSON file">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              <span>Upload JSON</span>
+              <input type="file" id="uploadScenariosFile" class="hidden" accept=".json">
+            </label>
+            <button onclick="
+              document.getElementById('scenariosModal').classList.add('hidden');
+              const params = new URLSearchParams(window.location.search);
+              params.delete('view');
+              window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+            " class="text-slate-400 hover:text-slate-500 transition ml-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div id="scenariosList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Scenarios will be injected here -->
+          <div class="col-span-full py-12 text-center text-slate-500 italic">
+            No scenarios saved yet.
+          </div>
+        </div>
+      </div>
+      <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button type="button" onclick="
+          document.getElementById('scenariosModal').classList.add('hidden');
+          const params = new URLSearchParams(window.location.search);
+          params.delete('view');
+          window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+        " class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <main class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
 
@@ -99,7 +210,7 @@
         </div>
 
         <div class="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100 space-y-2">
-          <span class="text-xs font-bold text-emerald-800 block">Secondary Capital Injection (e.g. House)</span>
+          <span class="text-xs font-bold text-emerald-800 block">Secondary Capital Injection (Inflation Adjusted)</span>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[10px] text-emerald-700 block font-semibold">Amount (Today's $)</label>
@@ -319,8 +430,8 @@
             </div>
           </div>
           <div class="inline-flex bg-slate-100 p-1 rounded-lg text-xs font-medium">
-            <button id="viewYearlyBtn" class="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition">Yearly View</button>
-            <button id="viewMonthlyBtn" class="px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-900 transition">Monthly View (600 Mos)</button>
+            <button id="viewYearlyBtn" class="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm transition">Yearly</button>
+            <button id="viewMonthlyBtn" class="px-3 py-1.5 rounded-md text-slate-500 hover:text-slate-900 transition">Monthly</button>
           </div>
         </div>
 
@@ -340,10 +451,40 @@
 
 <script type="module">
   import { calculateProjections } from './lib/calculator.mjs';
+  // Removed JsonBinService import
+
+  // State Management
+  const SCENARIOS_STORAGE = 'nz_retirement_scenarios'; // Array of { id, name, summary, state, updatedAt }
+
+  const DEFAULT_PARAMS = {
+    startBalance: 500000,
+    returnRate: 4.0,
+    taxRate: 0.8,
+    inflationRate: 2.5,
+    ageP1: 65,
+    ageP2: 65,
+    superAgeP1: 65,
+    superAgeP2: 65,
+    annualSuper: 40000,
+    secondaryCapAmount: 0,
+    secondaryCapYear: 10,
+    p1Years: 10,
+    p2Years: 10,
+    p1Spend: 6000,
+    p2Spend: 4000,
+    p3Spend: 3000,
+    p1Holiday: 10000,
+    p1Emergency: 5000,
+    p2Holiday: 5000,
+    p2Emergency: 5000,
+    p3Holiday: 2000,
+    p3Emergency: 5000
+  };
 
   let currentViewMode = 'yearly';
   let calculatedYearlyData = [];
   let calculatedMonthlyData = [];
+  let currentScenarioId = null; // If we are editing an existing scenario
 
   const fmt = new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 });
 
@@ -367,6 +508,14 @@
     const params = new URLSearchParams(window.location.search);
     const hasUrlParams = Array.from(params.keys()).length > 0;
 
+    // First, always apply DEFAULT_PARAMS to ensure a clean baseline
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && DEFAULT_PARAMS[id] !== undefined) {
+        el.value = DEFAULT_PARAMS[id];
+      }
+    });
+
     if (hasUrlParams) {
       inputIds.forEach(id => {
         if (params.has(id)) {
@@ -386,6 +535,17 @@
               if (el) el.value = state[id];
             }
           });
+          
+          // Check if we were editing a scenario
+          const lastScenarioId = localStorage.getItem('nz_retirement_last_scenario_id');
+          if (lastScenarioId) {
+             const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+             if (scenarios.some(s => s.id === lastScenarioId)) {
+                currentScenarioId = lastScenarioId;
+                document.getElementById('newScenario').classList.remove('hidden');
+                document.getElementById('saveScenarioText').textContent = 'Update Scenario';
+             }
+          }
         } catch (e) {
           console.error('Failed to parse saved state', e);
         }
@@ -394,7 +554,7 @@
   }
 
   function updateUrlFromInputs() {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(window.location.search);
     const state = {};
     inputIds.forEach(id => {
       const el = document.getElementById(id);
@@ -403,37 +563,46 @@
         state[id] = el.value;
       }
     });
+    // Keep 'view' param if it exists
+    const view = new URLSearchParams(window.location.search).get('view');
+    if (view) params.set('view', view);
+    
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
 
     // Also save to localStorage for local persistence
     localStorage.setItem('nz_retirement_planner_state', JSON.stringify(state));
+    if (currentScenarioId) {
+      localStorage.setItem('nz_retirement_last_scenario_id', currentScenarioId);
+    } else {
+      localStorage.removeItem('nz_retirement_last_scenario_id');
+    }
   }
 
   function getInputs() {
     return {
-      startBalance: getVal('startBalance', 1500000),
-      grossReturnRate: getVal('returnRate', 4.0) / 100,
-      taxRate: getVal('taxRate', 0.8) / 100,
-      inflationRate: getVal('inflationRate', 2.5) / 100,
-      ageP1: getVal('ageP1', 59),
-      ageP2: getVal('ageP2', 53),
-      superAgeP1: getVal('superAgeP1', 65),
-      superAgeP2: getVal('superAgeP2', 65),
-      annualSuper: getVal('annualSuper', 40000),
-      secondaryCapAmount: getVal('secondaryCapAmount', 0),
-      secondaryCapYear: getVal('secondaryCapYear', 10),
-      p1Years: getVal('p1Years', 10),
-      p2Years: getVal('p2Years', 10),
-      p1Spend: getVal('p1Spend', 9000),
-      p2Spend: getVal('p2Spend', 6000),
-      p3Spend: getVal('p3Spend', 4000),
-      p1Holiday: getVal('p1Holiday', 20000),
-      p1Emergency: getVal('p1Emergency', 5000),
-      p2Holiday: getVal('p2Holiday', 10000),
-      p2Emergency: getVal('p2Emergency', 5000),
-      p3Holiday: getVal('p3Holiday', 2000),
-      p3Emergency: getVal('p3Emergency', 5000)
+      startBalance: getVal('startBalance', DEFAULT_PARAMS.startBalance),
+      grossReturnRate: getVal('returnRate', DEFAULT_PARAMS.returnRate) / 100,
+      taxRate: getVal('taxRate', DEFAULT_PARAMS.taxRate) / 100,
+      inflationRate: getVal('inflationRate', DEFAULT_PARAMS.inflationRate) / 100,
+      ageP1: getVal('ageP1', DEFAULT_PARAMS.ageP1),
+      ageP2: getVal('ageP2', DEFAULT_PARAMS.ageP2),
+      superAgeP1: getVal('superAgeP1', DEFAULT_PARAMS.superAgeP1),
+      superAgeP2: getVal('superAgeP2', DEFAULT_PARAMS.superAgeP2),
+      annualSuper: getVal('annualSuper', DEFAULT_PARAMS.annualSuper),
+      secondaryCapAmount: getVal('secondaryCapAmount', DEFAULT_PARAMS.secondaryCapAmount),
+      secondaryCapYear: getVal('secondaryCapYear', DEFAULT_PARAMS.secondaryCapYear),
+      p1Years: getVal('p1Years', DEFAULT_PARAMS.p1Years),
+      p2Years: getVal('p2Years', DEFAULT_PARAMS.p2Years),
+      p1Spend: getVal('p1Spend', DEFAULT_PARAMS.p1Spend),
+      p2Spend: getVal('p2Spend', DEFAULT_PARAMS.p2Spend),
+      p3Spend: getVal('p3Spend', DEFAULT_PARAMS.p3Spend),
+      p1Holiday: getVal('p1Holiday', DEFAULT_PARAMS.p1Holiday),
+      p1Emergency: getVal('p1Emergency', DEFAULT_PARAMS.p1Emergency),
+      p2Holiday: getVal('p2Holiday', DEFAULT_PARAMS.p2Holiday),
+      p2Emergency: getVal('p2Emergency', DEFAULT_PARAMS.p2Emergency),
+      p3Holiday: getVal('p3Holiday', DEFAULT_PARAMS.p3Holiday),
+      p3Emergency: getVal('p3Emergency', DEFAULT_PARAMS.p3Emergency)
     };
   }
 
@@ -444,6 +613,22 @@
 
     calculatedYearlyData = yearlyData;
     calculatedMonthlyData = monthlyData;
+
+    // Update active scenario label
+    const activeLabel = document.getElementById('activeScenarioLabel');
+    const activeName = document.getElementById('activeScenarioName');
+    if (currentScenarioId) {
+      const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+      const scenario = scenarios.find(s => s.id === currentScenarioId);
+      if (scenario) {
+        activeLabel.classList.remove('hidden');
+        activeName.textContent = scenario.name;
+      } else {
+        activeLabel.classList.add('hidden');
+      }
+    } else {
+      activeLabel.classList.add('hidden');
+    }
 
     const longevityEl = document.getElementById('statLongevity');
     const longevitySub = document.getElementById('statLongevitySub');
@@ -466,7 +651,7 @@
       const row = findAgeBalanceRow(age);
       const valEl = document.getElementById(`statAge${age}`);
       const subEl = document.getElementById(`statAge${age}Sub`);
-      if (valEl) valEl.textContent = row ? fmt.format(row.endCap + row.injection) : 'N/A';
+      if (valEl) valEl.textContent = row ? fmt.format(row.endCap) : 'N/A';
       if (subEl) subEl.textContent = row ? `P1 Age ${age} / P2 Age ${row.ageP2}` : `P1 Age ${age} benchmark`;
     };
 
@@ -477,7 +662,417 @@
 
     renderTable();
     renderNativeCharts(yearlyData);
+    
+    // Auto-save state to localStorage if not currently editing a named scenario
+    // (Existing behavior preserved)
+    if (!currentScenarioId) {
+       const state = {};
+       inputIds.forEach(id => {
+         const el = document.getElementById(id);
+         if (el) state[id] = el.value;
+       });
+       localStorage.setItem('nz_retirement_planner_state', JSON.stringify(state));
+    }
   }
+
+  // --- UI Helpers ---
+
+  function showDialog({ title, message, type = 'alert', placeholder = '', confirmText = 'OK', cancelText = 'Cancel', icon = 'info' }) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('dialogModal');
+      const titleEl = document.getElementById('dialog-title');
+      const messageEl = document.getElementById('dialog-message');
+      const inputContainer = document.getElementById('dialogInputContainer');
+      const input = document.getElementById('dialogInput');
+      const actionsEl = document.getElementById('dialogActions');
+      const iconContainer = document.getElementById('dialogIconContainer');
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      
+      // Setup Icon
+      let iconHtml = '';
+      let iconBg = '';
+      if (icon === 'success') {
+        iconHtml = '<svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        iconBg = 'bg-emerald-100';
+      } else if (icon === 'error') {
+        iconHtml = '<svg class="h-6 w-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+        iconBg = 'bg-rose-100';
+      } else if (icon === 'warning') {
+        iconHtml = '<svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+        iconBg = 'bg-amber-100';
+      } else {
+        iconHtml = '<svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+        iconBg = 'bg-blue-100';
+      }
+      iconContainer.innerHTML = iconHtml;
+      iconContainer.className = `mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10 ${iconBg}`;
+
+      // Setup Input
+      if (type === 'prompt') {
+        inputContainer.classList.remove('hidden');
+        input.value = '';
+        input.placeholder = placeholder;
+        setTimeout(() => input.focus(), 100);
+      } else {
+        inputContainer.classList.add('hidden');
+      }
+
+      // Setup Actions
+      actionsEl.innerHTML = '';
+      
+      const confirmBtn = document.createElement('button');
+      confirmBtn.className = 'w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition';
+      confirmBtn.textContent = confirmText;
+      confirmBtn.onclick = () => {
+        modal.classList.add('hidden');
+        resolve(type === 'prompt' ? input.value : true);
+      };
+
+      if (type !== 'alert') {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition';
+        cancelBtn.textContent = cancelText;
+        cancelBtn.onclick = () => {
+          modal.classList.add('hidden');
+          resolve(type === 'prompt' ? null : false);
+        };
+        actionsEl.appendChild(cancelBtn);
+      }
+      
+      actionsEl.appendChild(confirmBtn);
+      modal.classList.remove('hidden');
+    });
+  }
+
+  // --- Scenario Logic ---
+
+  async function getScenarioSummary() {
+    const p = getInputs();
+    const { yearsDepleted, yearlyData } = calculateProjections(p);
+    
+    const findAgeBalance = (targetAge) => {
+      const row = yearlyData.find(d => d.ageP1 === targetAge);
+      return row ? fmt.format(row.endCap + row.injection) : 'N/A';
+    };
+
+    return {
+      longevity: yearsDepleted === null ? '50+ Years' : `${yearsDepleted} Years`,
+      depletedAge: yearsDepleted === null ? null : p.ageP1 + yearsDepleted,
+      balance70: findAgeBalance(70),
+      balance80: findAgeBalance(80),
+      balance90: findAgeBalance(90),
+      balance100: findAgeBalance(100)
+    };
+  }
+
+  async function saveScenario() {
+    const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+    const existingScenario = currentScenarioId ? scenarios.find(s => s.id === currentScenarioId) : null;
+
+    let name = null;
+    if (!currentScenarioId) {
+      name = await showDialog({
+        title: 'Save Scenario',
+        message: 'Enter a name for this retirement plan:',
+        type: 'prompt',
+        placeholder: 'My Retirement Plan'
+      });
+      if (name === null) return;
+      if (name === '') name = 'Unnamed Scenario';
+    }
+
+    const state = {};
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) state[id] = el.value;
+    });
+
+    const summary = await getScenarioSummary();
+    const updatedAt = new Date().toISOString();
+
+    try {
+      let scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+
+      if (currentScenarioId) {
+        // Update existing
+        const scenario = scenarios.find(s => s.id === currentScenarioId);
+        if (scenario) {
+          scenario.state = state;
+          scenario.summary = summary;
+          scenario.updatedAt = updatedAt;
+        }
+      } else {
+        // Create new
+        const newScenario = {
+          id: Date.now().toString(),
+          name: name,
+          state: state,
+          summary: summary,
+          updatedAt: updatedAt
+        };
+        scenarios.push(newScenario);
+        currentScenarioId = newScenario.id;
+        document.getElementById('newScenario').classList.remove('hidden');
+        document.getElementById('saveScenarioText').textContent = 'Update Scenario';
+      }
+
+      localStorage.setItem(SCENARIOS_STORAGE, JSON.stringify(scenarios));
+      renderScenariosList();
+      showDialog({
+        title: 'Success',
+        message: currentScenarioId ? 'Scenario updated!' : 'Scenario saved to local list!',
+        icon: 'success'
+      });
+    } catch (e) {
+      console.error(e);
+      showDialog({
+        title: 'Error',
+        message: 'Failed to save scenario: ' + e.message,
+        icon: 'error'
+      });
+    }
+  }
+
+  function startNewScenario() {
+    currentScenarioId = null;
+    localStorage.removeItem('nz_retirement_last_scenario_id');
+    document.getElementById('newScenario').classList.add('hidden');
+    document.getElementById('saveScenarioText').textContent = 'Save to List';
+    
+    // Clear URL params
+    window.history.replaceState({}, '', window.location.pathname);
+    
+    // Reset inputs to defaults
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        // Handle IDs that don't match DEFAULT_PARAMS keys (like returnRate -> grossReturnRate in calculator but returnRate in UI)
+        let val = DEFAULT_PARAMS[id];
+        // Special mapping for cases where UI ID differs from DEFAULT_PARAMS key? 
+        // Actually I made DEFAULT_PARAMS keys match inputIds where possible.
+        // Let's check inputIds again.
+        if (val !== undefined) el.value = val;
+      }
+    });
+
+    updateUI();
+  }
+
+  function downloadAllScenarios() {
+    const scenarios = localStorage.getItem(SCENARIOS_STORAGE) || '[]';
+    const blob = new Blob([scenarios], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `retirement_scenarios_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  async function uploadScenarios(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (!Array.isArray(imported)) {
+          throw new Error('Invalid file format. Expected an array of scenarios.');
+        }
+
+        const choice = await showDialog({
+          title: 'Import Scenarios',
+          message: `You are about to import ${imported.length} scenarios. Do you want to replace all current scenarios or merge them?`,
+          type: 'confirm',
+          confirmText: 'Replace All',
+          cancelText: 'Merge',
+          icon: 'warning'
+        });
+
+        if (choice) {
+          localStorage.setItem(SCENARIOS_STORAGE, JSON.stringify(imported));
+        } else {
+          let current = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+          // Basic merge by ID, prefer imported on conflict
+          const merged = [...current];
+          imported.forEach(imp => {
+            const idx = merged.findIndex(c => c.id === imp.id);
+            if (idx > -1) {
+              merged[idx] = imp;
+            } else {
+              merged.push(imp);
+            }
+          });
+          localStorage.setItem(SCENARIOS_STORAGE, JSON.stringify(merged));
+        }
+
+        renderScenariosList();
+        showDialog({
+          title: 'Import Successful',
+          message: `${imported.length} scenarios have been imported.`,
+          icon: 'success'
+        });
+      } catch (err) {
+        console.error(err);
+        showDialog({
+          title: 'Import Failed',
+          message: 'Failed to import scenarios: ' + err.message,
+          icon: 'error'
+        });
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so the same file can be uploaded again
+    event.target.value = '';
+  }
+
+  function renderScenariosList() {
+    const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+    const listEl = document.getElementById('scenariosList');
+    
+    if (scenarios.length === 0) {
+      listEl.innerHTML = `
+        <div class="col-span-full py-12 text-center text-slate-500 italic">
+          No scenarios saved yet.
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = scenarios.map(s => {
+      const isActive = s.id === currentScenarioId;
+      return `
+      <div class="bg-slate-50 border ${isActive ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-slate-200'} rounded-xl p-4 hover:border-emerald-500 transition-colors group relative">
+        ${isActive ? '<div class="absolute -top-2 -right-2 bg-emerald-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full shadow-sm">ACTIVE</div>' : ''}
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h4 class="font-bold text-slate-900">${s.name}</h4>
+            <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Updated: ${new Date(s.updatedAt).toLocaleDateString()}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="window.renameScenario('${s.id}')" class="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition" title="Rename">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </button>
+            <button onclick="window.loadScenario('${s.id}')" class="p-1.5 ${isActive ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-600 border border-slate-200'} rounded-lg hover:bg-emerald-600 hover:text-white transition" title="Load">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </button>
+            <button onclick="window.deleteScenario('${s.id}')" class="p-1.5 bg-white border border-slate-200 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="Delete">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs border-t border-slate-200 pt-3 mt-3">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Longevity:</span>
+            <span class="font-bold ${s.summary.depletedAge ? 'text-rose-600' : 'text-emerald-600'}">${s.summary.longevity}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Age 70:</span>
+            <span class="font-semibold text-slate-700">${s.summary.balance70}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Age 80:</span>
+            <span class="font-semibold text-slate-700">${s.summary.balance80}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Age 90:</span>
+            <span class="font-semibold text-slate-700">${s.summary.balance90}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Age 100:</span>
+            <span class="font-semibold text-slate-700">${s.summary.balance100}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    }).join('');
+  }
+
+  window.loadScenario = async (id) => {
+    const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+    const scenario = scenarios.find(s => s.id === id);
+    if (!scenario) return;
+
+    try {
+      const state = scenario.state;
+      
+      inputIds.forEach(id => {
+        if (state[id] !== undefined) {
+          const el = document.getElementById(id);
+          if (el) el.value = state[id];
+        }
+      });
+
+      currentScenarioId = id;
+      document.getElementById('newScenario').classList.remove('hidden');
+      document.getElementById('saveScenarioText').textContent = 'Update Scenario';
+      updateUI();
+      // Remove view=scenarios from URL when a scenario is loaded
+      const params = new URLSearchParams(window.location.search);
+      params.delete('view');
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+      
+      document.getElementById('scenariosModal').classList.add('hidden');
+    } catch (e) {
+      console.error(e);
+      showDialog({
+        title: 'Error',
+        message: 'Failed to load scenario: ' + e.message,
+        icon: 'error'
+      });
+    }
+  };
+
+  window.deleteScenario = async (id) => {
+    const confirmed = await showDialog({
+      title: 'Delete Scenario',
+      message: 'Are you sure you want to delete this scenario? This action cannot be undone.',
+      type: 'confirm',
+      confirmText: 'Delete',
+      cancelText: 'Keep',
+      icon: 'error'
+    });
+    
+    if (!confirmed) return;
+    
+    let scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+    const scenarioIndex = scenarios.findIndex(s => s.id === id);
+    if (scenarioIndex === -1) return;
+
+    scenarios.splice(scenarioIndex, 1);
+    localStorage.setItem(SCENARIOS_STORAGE, JSON.stringify(scenarios));
+    if (currentScenarioId === id) currentScenarioId = null;
+    renderScenariosList();
+    updateUI();
+  };
+
+  window.renameScenario = async (id) => {
+    let scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
+    const scenario = scenarios.find(s => s.id === id);
+    if (!scenario) return;
+
+    const newName = await showDialog({
+      title: 'Rename Scenario',
+      message: 'Enter a new name for this retirement plan:',
+      type: 'prompt',
+      placeholder: scenario.name
+    });
+
+    if (newName === null || newName.trim() === '') return;
+
+    scenario.name = newName.trim();
+    scenario.updatedAt = new Date().toISOString();
+    localStorage.setItem(SCENARIOS_STORAGE, JSON.stringify(scenarios));
+    renderScenariosList();
+    updateUI();
+  };
+
+  // --- End Scenario Logic ---
 
   function renderTable() {
     const thead = document.getElementById('tableHeader');
@@ -535,7 +1130,7 @@
         const netGainDetail = `${fmt.format(row.grossGain)} (Gross) - ${fmt.format(row.taxPaid)} (Tax) = ${fmt.format(row.netGain)}`;
         let endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) = ${fmt.format(row.endCap)}`;
         if (row.injection > 0) {
-          endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) + ${fmt.format(row.injection)} (Injection) = ${fmt.format(row.endCap + row.injection)}`;
+          endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) + ${fmt.format(row.injection)} (Inflation-Adjusted Injection) = ${fmt.format(row.endCap)}`;
         }
 
         tr.innerHTML = `
@@ -548,7 +1143,7 @@
                         <td class="py-2.5 px-3 text-right text-slate-500" title="Investment growth before tax: ${fmt.format(row.grossGain)}">${fmt.format(row.grossGain)}</td>
                         <td class="py-2.5 px-3 text-right text-amber-600" title="Tax Drag: ${taxDetail}">-${fmt.format(row.taxPaid)}</td>
                         <td class="py-2.5 px-3 text-right text-emerald-700 font-medium" title="Net Gain = ${netGainDetail}">${fmt.format(row.netGain)}</td>
-                        <td class="py-2.5 px-3 text-right font-bold text-slate-900 ${row.injection > 0 ? 'ring-2 ring-emerald-500 ring-inset' : ''}" title="End Capital = ${endCapDetail}">${fmt.format(row.endCap + row.injection)}</td>
+                        <td class="py-2.5 px-3 text-right font-bold text-slate-900 ${row.injection > 0 ? 'ring-2 ring-emerald-500 ring-inset' : ''}" title="End Capital = ${endCapDetail}">${fmt.format(row.endCap)}</td>
                     `;
         tbody.appendChild(tr);
       });
@@ -609,7 +1204,7 @@
         const netGainDetail = `${fmt.format(row.grossGain)} (Gross) - ${fmt.format(row.taxPaid)} (Tax) = ${fmt.format(row.netGain)}`;
         let endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) = ${fmt.format(row.endCap)}`;
         if (row.injection > 0) {
-          endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) + ${fmt.format(row.injection)} (Injection) = ${fmt.format(row.endCap + row.injection)}`;
+          endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) + ${fmt.format(row.injection)} (Inflation-Adjusted Injection) = ${fmt.format(row.endCap)}`;
         }
 
         tr.innerHTML = `
@@ -622,7 +1217,7 @@
                         <td class="py-2 px-3 text-right text-slate-500" title="Investment growth for this month before tax: ${fmt.format(row.grossGain)}">${fmt.format(row.grossGain)}</td>
                         <td class="py-2 px-3 text-right text-amber-600" title="Tax Drag: ${taxDetail}">-${fmt.format(row.taxPaid)}</td>
                         <td class="py-2 px-3 text-right text-emerald-700 font-medium" title="Net Gain = ${netGainDetail}">${fmt.format(row.netGain)}</td>
-                        <td class="py-2 px-3 text-right font-bold text-slate-900 ${row.injection > 0 ? 'ring-2 ring-emerald-500 ring-inset' : ''}" title="End Cap = ${endCapDetail}">${fmt.format(row.endCap + row.injection)}</td>
+                        <td class="py-2 px-3 text-right font-bold text-slate-900 ${row.injection > 0 ? 'ring-2 ring-emerald-500 ring-inset' : ''}" title="End Cap = ${endCapDetail}">${fmt.format(row.endCap)}</td>
                     `;
         tbody.appendChild(tr);
       });
@@ -632,7 +1227,7 @@
   function renderNativeCharts(yearlyData) {
     if (!yearlyData.length) return;
 
-    const maxBal = Math.max(...yearlyData.map(d => d.endCap + d.injection), 100000);
+    const maxBal = Math.max(...yearlyData.map(d => d.endCap), 100000);
     document.getElementById('maxBalanceTag').textContent = `Peak: ${fmt.format(maxBal)}`;
 
     const svg = document.getElementById('balanceSvg');
@@ -641,7 +1236,7 @@
 
     const points = yearlyData.map((d, i) => {
       const x = (i / (yearlyData.length - 1)) * width;
-      const y = height - (((d.endCap + d.injection) / maxBal) * (height - 20)) - 10;
+      const y = height - (((d.endCap) / maxBal) * (height - 20)) - 10;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
 
@@ -736,7 +1331,26 @@
       if (el) el.addEventListener('input', () => window.updateUI());
     });
 
+    document.getElementById('newScenario').addEventListener('click', startNewScenario);
     document.getElementById('exportCsv').addEventListener('click', exportToCSV);
+    document.getElementById('saveScenario').addEventListener('click', saveScenario);
+    document.getElementById('downloadAllScenarios').addEventListener('click', downloadAllScenarios);
+    document.getElementById('uploadScenariosFile').addEventListener('change', uploadScenarios);
+    document.getElementById('viewScenarios').addEventListener('click', () => {
+      // Add view=scenarios to URL so it can be bookmarked
+      const params = new URLSearchParams(window.location.search);
+      params.set('view', 'scenarios');
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+      
+      renderScenariosList();
+      document.getElementById('scenariosModal').classList.remove('hidden');
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view') === 'scenarios') {
+      renderScenariosList();
+      document.getElementById('scenariosModal').classList.remove('hidden');
+    }
 
     const yearBtn = document.getElementById('viewYearlyBtn');
     const monthBtn = document.getElementById('viewMonthlyBtn');

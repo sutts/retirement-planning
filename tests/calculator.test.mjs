@@ -36,17 +36,30 @@ describe('calculateProjections', () => {
     expect(result.yearlyData.length).toBe(50);
   });
 
-  test('should handle secondary capital injection', () => {
+  test('should handle secondary capital injection and maintain balance consistency', () => {
     const params = { ...defaultParams, secondaryCapAmount: 100000, secondaryCapYear: 1 };
     const result = calculateProjections(params);
+    
     // Injection at end of Year 1 (Month 12)
     const month12 = result.monthlyData[11];
+    const month13 = result.monthlyData[12];
+    const year1 = result.yearlyData[0];
+    const year2 = result.yearlyData[1];
+
     expect(month12.injection).toBeGreaterThan(0);
-    // Inflation mult for Month 11 (0-indexed) would be used? 
-    // Wait, old logic: inflationMult = Math.pow(1 + monthlyInflationRate, m);
-    // m is 0 to 599.
-    // For m=11, inflationMult = (1+monthlyInflationRate)^11.
-    expect(month12.injection).toBeCloseTo(100000 * Math.pow(Math.pow(1.025, 1/12), 11), 0);
+    
+    // Inflation adjustment: (1 + monthlyRate) ^ 11 for Month 12
+    const monthlyInflationRate = Math.pow(1 + params.inflationRate, 1/12) - 1;
+    const expectedInjection = 100000 * Math.pow(1 + monthlyInflationRate, 11);
+    expect(month12.injection).toBeCloseTo(expectedInjection, 2);
+
+    // Consistency: End balance of period MUST match start balance of next period
+    expect(month12.endCap).toBeCloseTo(month13.startCap, 5);
+    expect(year1.endCap).toBeCloseTo(year2.startCap, 5);
+
+    // Balance calculation: startCap - netDraw + netGain + injection = endCap
+    expect(month12.startCap - month12.netDraw + month12.netGain + month12.injection).toBeCloseTo(month12.endCap, 5);
+    expect(year1.startCap - year1.netDraw + year1.netGain + year1.injection).toBeCloseTo(year1.endCap, 5);
   });
 
   test('should deplete capital if spending is too high', () => {
