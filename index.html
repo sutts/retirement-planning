@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NZ Retirement Income & Capital Planner</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- NOTE: Tailwind CDN is used for rapid prototyping. For production, consider using a build-tool like Tailwind CLI or PostCSS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
       input[type="number"]::-webkit-inner-spin-button,
       input[type="number"]::-webkit-outer-spin-button {
@@ -30,10 +32,16 @@
         </div>
       </div>
     </div>
-    <button id="exportCsv" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-      <span>Export CSV</span>
-    </button>
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+        <button id="exportPdf" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+          <span>PDF</span>
+        </button>
+        <button id="exportCsv" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span>CSV</span>
+        </button>
+    </div>
     <div class="flex items-center gap-2 w-full sm:w-auto">
         <button id="newScenario" class="hidden sm:inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition" title="Start new calculation">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -145,49 +153,77 @@
 <main class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
 
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" id="summaryCards">
-    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative group overflow-hidden">
       <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
         <span>Portfolio Longevity</span>
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
       </div>
       <div id="statLongevity" class="text-2xl font-bold text-slate-900">--</div>
       <p id="statLongevitySub" class="text-xs text-slate-500 mt-1">Based on projected returns</p>
+      
+      <!-- Sustainability Indicator -->
+      <div id="statSustainability" class="absolute bottom-0 left-0 w-full h-1 bg-slate-100 transition-all duration-500"></div>
+      
+      <!-- Tooltip for Longevity -->
+      <div class="absolute inset-0 bg-slate-900/95 text-white p-4 text-[10px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-center pointer-events-none z-10">
+        Shows how many years your capital lasts. NZ Super helps bridge gaps, but this measures when private savings hit $0.
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative group overflow-hidden">
+      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
+        <span>Drawdown Rate</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+      </div>
+      <div id="statDrawRate" class="text-2xl font-bold text-slate-900">--</div>
+      <p id="statDrawRateSub" class="text-xs text-slate-500 mt-1">Initial year net withdrawal</p>
+      
+      <!-- Tooltip -->
+      <div class="absolute inset-0 bg-slate-900/95 text-white p-4 text-[10px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-center pointer-events-none z-10">
+        The percentage of your initial capital withdrawn in Year 1. A rate under 4% is widely considered sustainable for 30+ years.
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative group overflow-hidden">
       <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
         <span>Balance at Age 70</span>
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
       </div>
       <div id="statAge70" class="text-2xl font-bold text-slate-900">$0</div>
       <p id="statAge70Sub" class="text-xs text-slate-500 mt-1">P1 Age 70 / P2 Age --</p>
+      
+      <!-- Tooltip -->
+      <div class="absolute inset-0 bg-slate-900/95 text-white p-4 text-[10px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-center pointer-events-none z-10">
+        Estimated capital remaining at age 70.
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative group overflow-hidden">
       <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
         <span>Balance at Age 80</span>
-        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
       </div>
       <div id="statAge80" class="text-2xl font-bold text-slate-900">$0</div>
       <p id="statAge80Sub" class="text-xs text-slate-500 mt-1">P1 Age 80 / P2 Age --</p>
-    </div>
-
-    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-        <span>Balance at Age 90</span>
-        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+      
+      <!-- Tooltip -->
+      <div class="absolute inset-0 bg-slate-900/95 text-white p-4 text-[10px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-center pointer-events-none z-10">
+        Projected capital at age 80.
       </div>
-      <div id="statAge90" class="text-2xl font-bold text-slate-900">$0</div>
-      <p id="statAge90Sub" class="text-xs text-slate-500 mt-1">P1 Age 90 / P2 Age --</p>
     </div>
 
-    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative group overflow-hidden">
       <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-        <span>Balance at Age 100</span>
+        <span>Balance at Age 85</span>
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
       </div>
-      <div id="statAge100" class="text-2xl font-bold text-slate-900">$0</div>
-      <p id="statAge100Sub" class="text-xs text-slate-500 mt-1">P1 Age 100 / P2 Age --</p>
+      <div id="statAge85" class="text-2xl font-bold text-slate-900">$0</div>
+      <p id="statAge85Sub" class="text-xs text-slate-500 mt-1">P1 Age 85 / P2 Age --</p>
+      
+      <!-- Tooltip -->
+      <div class="absolute inset-0 bg-slate-900/95 text-white p-4 text-[10px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-center pointer-events-none z-10">
+        Estimated capital remaining at age 85 (median NZ life expectancy).
+      </div>
     </div>
   </section>
 
@@ -387,7 +423,7 @@
 
     <div class="lg:col-span-9 space-y-8">
 
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+      <div id="chartsCard" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
         <div>
           <div class="flex justify-between items-center mb-2">
             <div>
@@ -413,7 +449,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div id="projectionLedgerCard" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 class="text-base font-bold text-slate-900">Projection Breakdown</h2>
@@ -632,15 +668,33 @@
 
     const longevityEl = document.getElementById('statLongevity');
     const longevitySub = document.getElementById('statLongevitySub');
+    const sustainabilityBar = document.getElementById('statSustainability');
 
     if (yearsDepleted === null) {
       longevityEl.textContent = '50+ Years';
       longevityEl.className = 'text-2xl font-bold text-emerald-600';
       longevitySub.textContent = 'Portfolio fully sustains lifestyle';
+      sustainabilityBar.className = 'absolute bottom-0 left-0 w-full h-1 bg-emerald-500 transition-all duration-500';
     } else {
       longevityEl.textContent = `${yearsDepleted} Years`;
       longevityEl.className = 'text-2xl font-bold text-rose-600';
       longevitySub.textContent = `Capital depleted at P1 age ${p.ageP1 + yearsDepleted}`;
+      
+      const pct = Math.min(100, (yearsDepleted / 35) * 100);
+      const color = yearsDepleted > 30 ? 'bg-emerald-500' : (yearsDepleted > 20 ? 'bg-amber-500' : 'bg-rose-500');
+      sustainabilityBar.className = `absolute bottom-0 left-0 h-1 transition-all duration-500 ${color}`;
+      sustainabilityBar.style.width = `${pct}%`;
+    }
+
+    // Update Drawdown Rate
+    const firstYear = yearlyData[0];
+    const drawRateEl = document.getElementById('statDrawRate');
+    const drawRateSub = document.getElementById('statDrawRateSub');
+    if (firstYear && p.startBalance > 0) {
+      const rate = (firstYear.netDraw / p.startBalance) * 100;
+      drawRateEl.textContent = `${rate.toFixed(1)}%`;
+      drawRateEl.className = `text-2xl font-bold ${rate <= 4.1 ? 'text-emerald-600' : (rate <= 6 ? 'text-amber-600' : 'text-rose-600')}`;
+      drawRateSub.textContent = `Initial drawdown: ${fmt.format(firstYear.netDraw)}`;
     }
 
     const findAgeBalanceRow = (targetAge) => {
@@ -657,8 +711,7 @@
 
     updateBench(70);
     updateBench(80);
-    updateBench(90);
-    updateBench(100);
+    updateBench(85);
 
     renderTable();
     renderNativeCharts(yearlyData);
@@ -762,8 +815,7 @@
       depletedAge: yearsDepleted === null ? null : p.ageP1 + yearsDepleted,
       balance70: findAgeBalance(70),
       balance80: findAgeBalance(80),
-      balance90: findAgeBalance(90),
-      balance100: findAgeBalance(100)
+      balance85: findAgeBalance(85)
     };
   }
 
@@ -980,12 +1032,8 @@
             <span class="font-semibold text-slate-700">${s.summary.balance80}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-500">Age 90:</span>
-            <span class="font-semibold text-slate-700">${s.summary.balance90}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Age 100:</span>
-            <span class="font-semibold text-slate-700">${s.summary.balance100}</span>
+            <span class="text-slate-500">Age 85:</span>
+            <span class="font-semibold text-slate-700">${s.summary.balance85}</span>
           </div>
         </div>
       </div>
@@ -1224,6 +1272,43 @@
     }
   }
 
+  function hideChartHover() {
+    document.getElementById('chartTooltip')?.classList.add('hidden');
+    document.getElementById('chartPointerLine')?.setAttribute('x1', -10);
+    document.getElementById('chartPointerLine')?.setAttribute('x2', -10);
+  }
+
+  function handleChartHover(e) {
+    const svg = document.getElementById('balanceSvg');
+    const tip = document.getElementById('chartTooltip');
+    const line = document.getElementById('chartPointerLine');
+    const rect = svg.getBoundingClientRect();
+    
+    // Scale mouse position to SVG viewbox
+    const x = ((e.clientX - rect.left) / rect.width) * 1000;
+    
+    // Find closest year
+    const yearlyData = calculatedYearlyData;
+    const yearIdx = Math.round((x / 1000) * (yearlyData.length - 1));
+    const data = yearlyData[yearIdx];
+    
+    if (data) {
+      const snapX = (yearIdx / (yearlyData.length - 1)) * 1000;
+      line.setAttribute('x1', snapX);
+      line.setAttribute('x2', snapX);
+      
+      tip.classList.remove('hidden');
+      tip.style.left = `${e.clientX + 15}px`;
+      tip.style.top = `${e.clientY - 20}px`;
+      tip.innerHTML = `
+        <span class="font-bold text-emerald-400">Year ${data.yearIdx + 1} (Age ${data.ageP1})</span>
+        <span>Balance: ${fmt.format(data.endCap + data.injection)}</span>
+        <span>Spend: ${fmt.format(data.spend)}</span>
+        <span class="text-slate-400">Super: ${fmt.format(data.superInc)}</span>
+      `;
+    }
+  }
+
   function renderNativeCharts(yearlyData) {
     if (!yearlyData.length) return;
 
@@ -1253,7 +1338,24 @@
                 </defs>
                 <path d="${pathD}" fill="url(#grad)" />
                 <path d="${lineD}" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" />
+                
+                <!-- Interactive Vertical Line -->
+                <line id="chartPointerLine" x1="-10" y1="0" x2="-10" y2="${height}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4" />
+                
+                <!-- Invisible overlay for mouse tracking -->
+                <rect width="${width}" height="${height}" fill="transparent" class="cursor-crosshair"
+                      onmousemove="handleChartHover(event)" 
+                      onmouseleave="hideChartHover()" />
             `;
+
+    // Tooltip for SVG Chart
+    let chartTip = document.getElementById('chartTooltip');
+    if (!chartTip) {
+      chartTip = document.createElement('div');
+      chartTip.id = 'chartTooltip';
+      chartTip.className = 'absolute hidden bg-slate-900 text-white text-[10px] p-2 rounded shadow-xl pointer-events-none z-50 flex-col';
+      document.body.appendChild(chartTip);
+    }
 
     const flowContainer = document.getElementById('flowChartContainer');
     flowContainer.innerHTML = '';
@@ -1321,6 +1423,44 @@
     document.body.removeChild(link);
   }
 
+  async function exportToPdf() {
+    const element = document.body;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString();
+    const scenarioName = currentScenarioId ? (JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]').find(s => s.id === currentScenarioId)?.name || 'Unnamed') : 'Current Plan';
+
+    const timestamp = document.createElement('div');
+    timestamp.className = 'print-only text-[12px] font-bold text-slate-600 mb-6 pb-2 border-b border-slate-200';
+    timestamp.innerHTML = `NZ Retirement Planner Report | Exported: ${dateStr} ${timeStr} | Scenario: ${scenarioName}`;
+    document.body.prepend(timestamp);
+
+    const sidebar = document.querySelector('aside');
+    const header = document.querySelector('header');
+    
+    sidebar.classList.add('no-print');
+    header.classList.add('no-print');
+    document.body.classList.add('pdf-printing');
+
+    const opt = {
+      margin: [10, 5, 10, 5],
+      filename: `nz_retirement_${scenarioName.replace(/\s+/g, '_')}_${now.toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 1.5, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } finally {
+      document.body.removeChild(timestamp);
+      sidebar.classList.remove('no-print');
+      header.classList.remove('no-print');
+      document.body.classList.remove('pdf-printing');
+    }
+  }
+
   window.updateUI = updateUI;
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -1333,6 +1473,7 @@
 
     document.getElementById('newScenario').addEventListener('click', startNewScenario);
     document.getElementById('exportCsv').addEventListener('click', exportToCSV);
+    document.getElementById('exportPdf').addEventListener('click', exportToPdf);
     document.getElementById('saveScenario').addEventListener('click', saveScenario);
     document.getElementById('downloadAllScenarios').addEventListener('click', downloadAllScenarios);
     document.getElementById('uploadScenariosFile').addEventListener('change', uploadScenarios);
