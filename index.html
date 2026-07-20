@@ -338,11 +338,67 @@
 
   const fmt = new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 });
 
+  const inputIds = [
+    'startBalance', 'returnRate', 'taxRate', 'inflationRate',
+    'ageP1', 'ageP2', 'superAgeP1', 'superAgeP2',
+    'annualSuper', 'p1Years', 'p1Spend', 'p2Years',
+    'p2Spend', 'p3Spend',
+    'p1Holiday', 'p1Emergency', 'p2Holiday', 'p2Emergency', 'p3Holiday', 'p3Emergency',
+    'secondaryCapAmount', 'secondaryCapYear'
+  ];
+
   function getVal(id, fallback = 0) {
     const el = document.getElementById(id);
     if (!el) return fallback;
     const v = parseFloat(el.value);
     return isNaN(v) ? fallback : v;
+  }
+
+  function syncInputsWithUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const hasUrlParams = Array.from(params.keys()).length > 0;
+
+    if (hasUrlParams) {
+      inputIds.forEach(id => {
+        if (params.has(id)) {
+          const el = document.getElementById(id);
+          if (el) el.value = params.get(id);
+        }
+      });
+    } else {
+      // Try loading from localStorage if no URL params
+      const savedState = localStorage.getItem('nz_retirement_planner_state');
+      if (savedState) {
+        try {
+          const state = JSON.parse(savedState);
+          inputIds.forEach(id => {
+            if (state[id] !== undefined) {
+              const el = document.getElementById(id);
+              if (el) el.value = state[id];
+            }
+          });
+        } catch (e) {
+          console.error('Failed to parse saved state', e);
+        }
+      }
+    }
+  }
+
+  function updateUrlFromInputs() {
+    const params = new URLSearchParams();
+    const state = {};
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        params.set(id, el.value);
+        state[id] = el.value;
+      }
+    });
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+
+    // Also save to localStorage for local persistence
+    localStorage.setItem('nz_retirement_planner_state', JSON.stringify(state));
   }
 
   function getInputs() {
@@ -373,6 +429,7 @@
   }
 
   function updateUI() {
+    updateUrlFromInputs();
     const p = getInputs();
     const { yearlyData, monthlyData, yearsDepleted } = calculateProjections(p);
 
@@ -655,14 +712,7 @@
   window.updateUI = updateUI;
 
   window.addEventListener('DOMContentLoaded', () => {
-    const inputIds = [
-      'startBalance', 'returnRate', 'taxRate', 'inflationRate',
-      'ageP1', 'ageP2', 'superAgeP1', 'superAgeP2',
-      'annualSuper', 'p1Years', 'p1Spend', 'p2Years',
-      'p2Spend', 'p3Spend',
-      'p1Holiday', 'p1Emergency', 'p2Holiday', 'p2Emergency', 'p3Holiday', 'p3Emergency',
-      'secondaryCapAmount', 'secondaryCapYear'
-    ];
+    syncInputsWithUrl();
 
     inputIds.forEach(id => {
       const el = document.getElementById(id);
