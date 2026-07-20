@@ -152,7 +152,7 @@
               <label class="text-[10px] text-slate-500 block">Monthly Spend</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p1Spend" value="8000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+                <input type="number" id="p1Spend" value="10000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
               </div>
             </div>
           </div>
@@ -278,7 +278,7 @@
       annualSuper: getVal('annualSuper', 40000),
       p1Years: getVal('p1Years', 10),
       p2Years: getVal('p2Years', 10),
-      p1Spend: getVal('p1Spend', 8000),
+      p1Spend: getVal('p1Spend', 10000),
       p2Spend: getVal('p2Spend', 6000),
       p3Spend: getVal('p3Spend', 4000)
     };
@@ -293,8 +293,10 @@
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
 
+    // Geometric compounding math patch
+    const netAnnualRate = Math.max(0, p.grossReturnRate - p.taxRate);
+    const monthlyNetRate = Math.pow(1 + netAnnualRate, 1/12) - 1;
     const monthlyGrossRate = Math.pow(1 + p.grossReturnRate, 1/12) - 1;
-    const monthlyTaxRate = Math.pow(1 + p.taxRate, 1/12) - 1;
     const monthlyInflationRate = Math.pow(1 + p.inflationRate, 1/12) - 1;
 
     let yearsDepleted = null;
@@ -333,9 +335,11 @@
 
       if (startCap > 0) {
         const taxableBase = Math.max(0, startCap - (netDraw / 2));
+
+        // Direct calculation of net growth using net compounding rate
+        netGain = taxableBase * monthlyNetRate;
         grossGain = taxableBase * monthlyGrossRate;
-        taxPaid = taxableBase * monthlyTaxRate;
-        netGain = grossGain - taxPaid;
+        taxPaid = grossGain - netGain;
 
         endCap = startCap - netDraw + netGain;
 
