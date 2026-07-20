@@ -88,6 +88,26 @@
             <input type="number" id="startBalance" value="1500000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
           </div>
         </div>
+
+        <div class="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100 space-y-2">
+          <span class="text-xs font-bold text-emerald-800 block">Secondary Capital Injection (e.g. House)</span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-emerald-700 block font-semibold">Amount (Today's $)</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
+                <input type="number" id="secondaryCapAmount" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-emerald-700 block font-semibold">In Year (Y1=0)</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="secondaryCapYear" value="10" class="w-full px-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none">
+                <span class="text-xs text-emerald-600">YX</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="grid grid-cols-3 gap-2">
           <div>
             <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap">Gross Return (%)</label>
@@ -138,48 +158,80 @@
       <div class="space-y-4 pt-2 border-t border-slate-100">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">3. Phased Spending (Today's $)</h3>
 
-        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
-          <span class="text-xs font-bold text-slate-600 block">Phase 1 (Active Years)</span>
+        <div class="p-3 bg-emerald-100/50 rounded-lg border border-emerald-200 space-y-2">
+          <span class="text-xs font-bold text-emerald-800 block">Phase 1 (Active Years)</span>
           <div class="grid grid-cols-3 gap-2">
             <div class="col-span-1">
-              <label class="text-[10px] text-slate-500 block">Duration</label>
+              <label class="text-[10px] text-emerald-700 block">Duration</label>
               <div class="flex items-center gap-1">
-                <input type="number" id="p1Years" value="10" class="w-full px-2 py-1 border border-slate-300 rounded text-xs">
-                <span class="text-xs text-slate-400">yrs</span>
+                <input type="number" id="p1Years" value="10" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs">
+                <span class="text-xs text-emerald-600">yrs</span>
               </div>
             </div>
             <div class="col-span-2">
-              <label class="text-[10px] text-slate-500 block">Monthly Spend</label>
+              <label class="text-[10px] text-emerald-700 block">Monthly Spend</label>
               <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p1Spend" value="9000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
+                <input type="number" id="p1Spend" value="9000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs">
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <div>
+              <label class="text-[10px] text-emerald-700 block">Yearly Holidays</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
+                <input type="number" id="p1Holiday" value="20000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-emerald-700 block">Yearly Emergency</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
+                <input type="number" id="p1Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs">
               </div>
             </div>
           </div>
         </div>
 
-        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
-          <span class="text-xs font-bold text-slate-600 block">Phase 2 (Passive Years)</span>
+        <div class="p-3 bg-blue-100/50 rounded-lg border border-blue-200 space-y-2">
+          <span class="text-xs font-bold text-blue-800 block">Phase 2 (Passive Years)</span>
           <div class="grid grid-cols-3 gap-2">
             <div class="col-span-1">
-              <label class="text-[10px] text-slate-500 block">Duration</label>
+              <label class="text-[10px] text-blue-700 block">Duration</label>
               <div class="flex items-center gap-1">
-                <input type="number" id="p2Years" value="10" class="w-full px-2 py-1 border border-slate-300 rounded text-xs">
-                <span class="text-xs text-slate-400">yrs</span>
+                <input type="number" id="p2Years" value="10" class="w-full px-2 py-1 border border-blue-300 rounded text-xs">
+                <span class="text-xs text-blue-600">yrs</span>
               </div>
             </div>
             <div class="col-span-2">
-              <label class="text-[10px] text-slate-500 block">Monthly Spend</label>
+              <label class="text-[10px] text-blue-700 block">Monthly Spend</label>
               <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p2Spend" value="6000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
+                <input type="number" id="p2Spend" value="6000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs">
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <div>
+              <label class="text-[10px] text-blue-700 block">Yearly Holidays</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
+                <input type="number" id="p2Holiday" value="10000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-blue-700 block">Yearly Emergency</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
+                <input type="number" id="p2Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs">
               </div>
             </div>
           </div>
         </div>
 
-        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
-          <span class="text-xs font-bold text-slate-600 block">Phase 3 (Supportive Years)</span>
+        <div class="p-3 bg-slate-100/40 rounded-lg border border-slate-200 space-y-2">
+          <span class="text-xs font-bold text-slate-700 block">Phase 3 (Supportive Years)</span>
           <div class="grid grid-cols-3 gap-2">
             <div class="col-span-1">
               <label class="text-[10px] text-slate-500 block">Duration</label>
@@ -190,6 +242,22 @@
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
                 <input type="number" id="p3Spend" value="4000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <div>
+              <label class="text-[10px] text-slate-500 block">Yearly Holidays</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
+                <input type="number" id="p3Holiday" value="2000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block">Yearly Emergency</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
+                <input type="number" id="p3Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
               </div>
             </div>
           </div>
@@ -230,9 +298,15 @@
           <div>
             <h2 class="text-base font-bold text-slate-900">Projection Breakdown</h2>
             <p class="text-xs text-slate-500">Full financial ledger including gross returns, estimated portfolio tax, and withdrawals</p>
-            <div class="mt-2 flex items-center gap-2 text-[10px] text-amber-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-md w-fit">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <span>Note: <strong>Spend</strong>, <strong>NZ Super</strong>, and <strong>Net Draw</strong> increase over time due to inflation adjustments (maintaining purchasing power).</span>
+            <div class="mt-2 flex flex-col gap-2">
+              <div class="flex items-center gap-2 text-[10px] text-amber-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-md w-fit">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Note: <strong>Spend</strong>, <strong>NZ Super</strong>, and <strong>Net Draw</strong> increase over time due to inflation adjustments. Monthly Spend includes allocated yearly holiday and emergency funds.</span>
+              </div>
+              <div class="flex items-start gap-2 text-[10px] text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-md w-fit">
+                <svg class="w-3 h-3 mt-0.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span><strong>Tax Drag:</strong> Calculated monthly on the portfolio's "Taxable Base" (Starting Balance minus half the month's withdrawal). This approximates tax paid throughout the year on investment returns, effectively reducing the net growth rate. Hover over any Tax Drag cell for the specific calculation.</span>
+              </div>
             </div>
           </div>
           <div class="inline-flex bg-slate-100 p-1 rounded-lg text-xs font-medium">
@@ -255,7 +329,9 @@
   </div>
 </main>
 
-<script>
+<script type="module">
+  import { calculateProjections } from './lib/calculator.mjs';
+
   let currentViewMode = 'yearly';
   let calculatedYearlyData = [];
   let calculatedMonthlyData = [];
@@ -280,139 +356,28 @@
       superAgeP1: getVal('superAgeP1', 65),
       superAgeP2: getVal('superAgeP2', 65),
       annualSuper: getVal('annualSuper', 40000),
+      secondaryCapAmount: getVal('secondaryCapAmount', 0),
+      secondaryCapYear: getVal('secondaryCapYear', 10),
       p1Years: getVal('p1Years', 10),
       p2Years: getVal('p2Years', 10),
       p1Spend: getVal('p1Spend', 9000),
       p2Spend: getVal('p2Spend', 6000),
-      p3Spend: getVal('p3Spend', 4000)
+      p3Spend: getVal('p3Spend', 4000),
+      p1Holiday: getVal('p1Holiday', 20000),
+      p1Emergency: getVal('p1Emergency', 5000),
+      p2Holiday: getVal('p2Holiday', 10000),
+      p2Emergency: getVal('p2Emergency', 5000),
+      p3Holiday: getVal('p3Holiday', 2000),
+      p3Emergency: getVal('p3Emergency', 5000)
     };
   }
 
-  function calculateProjections() {
+  function updateUI() {
     const p = getInputs();
-    const monthlyData = [];
-    const yearlyData = [];
-
-    let currentBalance = p.startBalance;
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-
-    // Geometric compounding math patch
-    const netAnnualRate = Math.max(0, p.grossReturnRate - p.taxRate);
-    const monthlyNetRate = Math.pow(1 + netAnnualRate, 1/12) - 1;
-    const monthlyGrossRate = Math.pow(1 + p.grossReturnRate, 1/12) - 1;
-    const monthlyInflationRate = Math.pow(1 + p.inflationRate, 1/12) - 1;
-
-    let yearsDepleted = null;
-
-    for (let m = 0; m < 600; m++) {
-      const yearIndex = Math.floor(m / 12);
-
-      const calYear = currentYear + Math.floor((currentMonth + m) / 12);
-      const calMonth = ((currentMonth + m) % 12) + 1;
-
-      const age1 = p.ageP1 + (m / 12);
-      const age2 = p.ageP2 + (m / 12);
-
-      let baseMonthlySpend = p.p3Spend;
-      if (yearIndex < p.p1Years) {
-        baseMonthlySpend = p.p1Spend;
-      } else if (yearIndex < (p.p1Years + p.p2Years)) {
-        baseMonthlySpend = p.p2Spend;
-      }
-
-      const inflationMult = Math.pow(1 + monthlyInflationRate, m);
-      const monthlySpend = baseMonthlySpend * inflationMult;
-
-      let superEligibleRatio = 0;
-      if (age1 >= p.superAgeP1) superEligibleRatio += 0.5;
-      if (age2 >= p.superAgeP2) superEligibleRatio += 0.5;
-
-      const monthlySuperIncome = ((p.annualSuper / 12) * superEligibleRatio) * inflationMult;
-      const netDraw = Math.max(0, monthlySpend - monthlySuperIncome);
-
-      const startCap = currentBalance;
-      let grossGain = 0;
-      let taxPaid = 0;
-      let netGain = 0;
-      let endCap = 0;
-
-      if (startCap > 0) {
-        const taxableBase = Math.max(0, startCap - (netDraw / 2));
-
-        // Direct calculation of net growth using net compounding rate
-        netGain = taxableBase * monthlyNetRate;
-        grossGain = taxableBase * monthlyGrossRate;
-        taxPaid = grossGain - netGain;
-
-        endCap = startCap - netDraw + netGain;
-
-        if (endCap <= 0) {
-          endCap = 0;
-          if (yearsDepleted === null) {
-            yearsDepleted = Math.ceil((m + 1) / 12);
-          }
-        }
-      } else {
-        endCap = 0;
-      }
-
-      currentBalance = endCap;
-
-      monthlyData.push({
-        monthIdx: m + 1,
-        calYear,
-        calMonth,
-        ageP1: Math.floor(age1),
-        ageP2: Math.floor(age2),
-        startCap,
-        spend: monthlySpend,
-        superInc: monthlySuperIncome,
-        netDraw,
-        grossGain,
-        taxPaid,
-        netGain,
-        endCap
-      });
-    }
-
-    for (let y = 0; y < 50; y++) {
-      const yearMonths = monthlyData.slice(y * 12, (y + 1) * 12);
-      if (!yearMonths.length) break;
-
-      const startCap = yearMonths[0].startCap;
-      const endCap = yearMonths[11].endCap;
-      const spend = yearMonths.reduce((acc, row) => acc + row.spend, 0);
-      const superInc = yearMonths.reduce((acc, row) => acc + row.superInc, 0);
-      const netDraw = yearMonths.reduce((acc, row) => acc + row.netDraw, 0);
-      const grossGain = yearMonths.reduce((acc, row) => acc + row.grossGain, 0);
-      const taxPaid = yearMonths.reduce((acc, row) => acc + row.taxPaid, 0);
-      const netGain = yearMonths.reduce((acc, row) => acc + row.netGain, 0);
-
-      yearlyData.push({
-        year: currentYear + y,
-        yearIdx: y,
-        ageP1: p.ageP1 + y,
-        ageP2: p.ageP2 + y,
-        startCap,
-        spend,
-        superInc,
-        netDraw,
-        grossGain,
-        taxPaid,
-        netGain,
-        endCap
-      });
-    }
+    const { yearlyData, monthlyData, yearsDepleted } = calculateProjections(p);
 
     calculatedYearlyData = yearlyData;
     calculatedMonthlyData = monthlyData;
-
-    return { yearlyData, monthlyData, yearsDepleted, params: p };
-  }
-
-  function updateUI() {
-    const { yearlyData, monthlyData, yearsDepleted, params } = calculateProjections();
 
     const longevityEl = document.getElementById('statLongevity');
     const longevitySub = document.getElementById('statLongevitySub');
@@ -424,12 +389,12 @@
     } else {
       longevityEl.textContent = `${yearsDepleted} Years`;
       longevityEl.className = 'text-2xl font-bold text-rose-600';
-      longevitySub.textContent = `Capital depleted at P1 age ${params.ageP1 + yearsDepleted}`;
+      longevitySub.textContent = `Capital depleted at P1 age ${p.ageP1 + yearsDepleted}`;
     }
 
     const findAgeBalance = (targetAge) => {
       const row = yearlyData.find(d => d.ageP1 === targetAge);
-      return row ? fmt.format(row.endCap) : 'N/A';
+      return row ? fmt.format(row.endCap + row.injection) : 'N/A';
     };
 
     document.getElementById('statAge80').textContent = findAgeBalance(80);
@@ -447,7 +412,7 @@
     if (currentViewMode === 'yearly') {
       thead.innerHTML = `
                     <tr>
-                        <th class="py-3 px-3">Year</th>
+                        <th class="py-3 px-3">Year Index</th>
                         <th class="py-3 px-3">Ages</th>
                         <th class="py-3 px-3 text-right">Start Capital</th>
                         <th class="py-3 px-3 text-right">Spend</th>
@@ -461,27 +426,62 @@
                 `;
       tbody.innerHTML = '';
       calculatedYearlyData.forEach(row => {
+        const p = getInputs();
         const tr = document.createElement('tr');
-        tr.className = row.endCap === 0 ? 'bg-rose-50/50 hover:bg-rose-100/50' : 'hover:bg-slate-50';
+        
+        // Determine phase for coloring
+        let phaseClass = 'bg-slate-100/40'; // Phase 3 (Supportive) default
+        if (row.yearIdx < p.p1Years) {
+          phaseClass = 'bg-emerald-100/50'; // Phase 1 (Active)
+        } else if (row.yearIdx < (p.p1Years + p.p2Years)) {
+          phaseClass = 'bg-blue-100/50'; // Phase 2 (Passive)
+        }
+
+        tr.className = row.endCap === 0 ? 'bg-rose-50/70 hover:bg-rose-100/80' : `${phaseClass} hover:bg-slate-200/40`;
+
+        // Calculation details for tooltips
+        const inflationMult = row.spend / (row.spend / Math.pow(1 + p.inflationRate, row.yearIdx)); 
+        
+        const inflationMultYearly = Math.pow(1 + p.inflationRate, row.yearIdx);
+        let baseMonthly = p.p3Spend;
+        let yearlyExtra = p.p3Holiday + p.p3Emergency;
+        if (row.yearIdx < p.p1Years) {
+          baseMonthly = p.p1Spend;
+          yearlyExtra = p.p1Holiday + p.p1Emergency;
+        } else if (row.yearIdx < (p.p1Years + p.p2Years)) {
+          baseMonthly = p.p2Spend;
+          yearlyExtra = p.p2Holiday + p.p2Emergency;
+        }
+        
+        const spendDetail = `(${fmt.format(baseMonthly)} base + ${fmt.format(yearlyExtra / 12)} extra) × 12 months × ${inflationMultYearly.toFixed(2)} inflation = ${fmt.format(row.spend)}`;
+        const superDetail = `(${fmt.format(p.annualSuper)} base × ${((row.superInc / (p.annualSuper * inflationMultYearly)) * 100).toFixed(0)}% eligibility) × ${inflationMultYearly.toFixed(2)} inflation = ${fmt.format(row.superInc)}`;
+        const taxDetail = `Estimated portfolio tax (${(p.taxRate * 100).toFixed(1)}% annual drag). Calculated monthly based on remaining capital during the year. Total for year: ${fmt.format(row.taxPaid)}`;
+
+        const netDrawDetail = `${fmt.format(row.spend)} (Spend) - ${fmt.format(row.superInc)} (Super) = ${fmt.format(row.netDraw)}`;
+        const netGainDetail = `${fmt.format(row.grossGain)} (Gross) - ${fmt.format(row.taxPaid)} (Tax) = ${fmt.format(row.netGain)}`;
+        let endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) = ${fmt.format(row.endCap)}`;
+        if (row.injection > 0) {
+          endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) + ${fmt.format(row.injection)} (Injection) = ${fmt.format(row.endCap + row.injection)}`;
+        }
+
         tr.innerHTML = `
-                        <td class="py-2.5 px-3 font-semibold text-slate-700">${row.year}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-700">Y${row.yearIdx + 1}</td>
                         <td class="py-2.5 px-3 text-slate-500">${row.ageP1}/${row.ageP2}</td>
-                        <td class="py-2.5 px-3 text-right">${fmt.format(row.startCap)}</td>
-                        <td class="py-2.5 px-3 text-right text-rose-600">${fmt.format(row.spend)}</td>
-                        <td class="py-2.5 px-3 text-right text-emerald-600">${fmt.format(row.superInc)}</td>
-                        <td class="py-2.5 px-3 text-right">${fmt.format(row.netDraw)}</td>
-                        <td class="py-2.5 px-3 text-right text-slate-500">${fmt.format(row.grossGain)}</td>
-                        <td class="py-2.5 px-3 text-right text-amber-600">-${fmt.format(row.taxPaid)}</td>
-                        <td class="py-2.5 px-3 text-right text-emerald-700 font-medium">${fmt.format(row.netGain)}</td>
-                        <td class="py-2.5 px-3 text-right font-bold text-slate-900">${fmt.format(row.endCap)}</td>
+                        <td class="py-2.5 px-3 text-right" title="Balance at the beginning of the year: ${fmt.format(row.startCap)}">${fmt.format(row.startCap)}</td>
+                        <td class="py-2.5 px-3 text-right text-rose-600" title="Spend: ${spendDetail}">${fmt.format(row.spend)}</td>
+                        <td class="py-2.5 px-3 text-right text-emerald-600" title="NZ Super: ${superDetail}">${fmt.format(row.superInc)}</td>
+                        <td class="py-2.5 px-3 text-right" title="Net Draw = ${netDrawDetail}">${fmt.format(row.netDraw)}</td>
+                        <td class="py-2.5 px-3 text-right text-slate-500" title="Investment growth before tax: ${fmt.format(row.grossGain)}">${fmt.format(row.grossGain)}</td>
+                        <td class="py-2.5 px-3 text-right text-amber-600" title="Tax Drag: ${taxDetail}">-${fmt.format(row.taxPaid)}</td>
+                        <td class="py-2.5 px-3 text-right text-emerald-700 font-medium" title="Net Gain = ${netGainDetail}">${fmt.format(row.netGain)}</td>
+                        <td class="py-2.5 px-3 text-right font-bold text-slate-900 ${row.injection > 0 ? 'ring-2 ring-emerald-500 ring-inset' : ''}" title="End Capital = ${endCapDetail}">${fmt.format(row.endCap + row.injection)}</td>
                     `;
         tbody.appendChild(tr);
       });
     } else {
       thead.innerHTML = `
                     <tr>
-                        <th class="py-3 px-3">Month</th>
-                        <th class="py-3 px-3">Date</th>
+                        <th class="py-3 px-3">Month Index</th>
                         <th class="py-3 px-3">Ages</th>
                         <th class="py-3 px-3 text-right">Start Cap</th>
                         <th class="py-3 px-3 text-right">Spend</th>
@@ -495,21 +495,60 @@
                 `;
       tbody.innerHTML = '';
       calculatedMonthlyData.forEach(row => {
+        const p = getInputs();
         const tr = document.createElement('tr');
-        tr.className = row.endCap === 0 ? 'bg-rose-50/50 hover:bg-rose-100/50' : 'hover:bg-slate-50';
-        const monthStr = String(row.calMonth).padStart(2, '0');
+        
+        const mIdx = row.monthIdx - 1;
+        const yearIdx = Math.floor(mIdx / 12);
+        
+        // Determine phase for coloring
+        let phaseClass = 'bg-slate-100/40'; // Phase 3 (Supportive) default
+        if (yearIdx < p.p1Years) {
+          phaseClass = 'bg-emerald-100/50'; // Phase 1 (Active)
+        } else if (yearIdx < (p.p1Years + p.p2Years)) {
+          phaseClass = 'bg-blue-100/50'; // Phase 2 (Passive)
+        }
+
+        tr.className = row.endCap === 0 ? 'bg-rose-50/70 hover:bg-rose-100/80' : `${phaseClass} hover:bg-slate-200/40`;
+
+        // Calculation details for tooltips
+        const inflationMultMonthly = Math.pow(1 + (Math.pow(1 + p.inflationRate, 1/12) - 1), mIdx);
+        const monthInYearIdx = (mIdx % 12) + 1;
+
+        let baseMonthly = p.p3Spend;
+        let yearlyExtra = p.p3Holiday + p.p3Emergency;
+        if (yearIdx < p.p1Years) {
+          baseMonthly = p.p1Spend;
+          yearlyExtra = p.p1Holiday + p.p1Emergency;
+        } else if (yearIdx < (p.p1Years + p.p2Years)) {
+          baseMonthly = p.p2Spend;
+          yearlyExtra = p.p2Holiday + p.p2Emergency;
+        }
+
+        const spendDetail = `(${fmt.format(baseMonthly)} base + ${fmt.format(yearlyExtra / 12)} extra) × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.spend)}`;
+        const superDetail = `(${fmt.format(p.annualSuper / 12)} base × ${((row.superInc / ((p.annualSuper / 12) * inflationMultMonthly)) * 100).toFixed(0)}% eligibility) × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.superInc)}`;
+        const taxableBase = Math.max(0, row.startCap - (row.netDraw / 2));
+        const monthlyTaxRate = Math.pow(1 + p.taxRate, 1/12) - 1;
+        const taxDetail = `Estimated portfolio tax: (${fmt.format(taxableBase)} taxable base × ${(monthlyTaxRate * 100).toFixed(3)}% monthly tax drag) = ${fmt.format(row.taxPaid)}`;
+
+        const netDrawDetail = `${fmt.format(row.spend)} (Spend) - ${fmt.format(row.superInc)} (Super) = ${fmt.format(row.netDraw)}`;
+        const netGainDetail = `${fmt.format(row.grossGain)} (Gross) - ${fmt.format(row.taxPaid)} (Tax) = ${fmt.format(row.netGain)}`;
+        let endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) = ${fmt.format(row.endCap)}`;
+        if (row.injection > 0) {
+          endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) + ${fmt.format(row.injection)} (Injection) = ${fmt.format(row.endCap + row.injection)}`;
+        }
+
         tr.innerHTML = `
-                        <td class="py-2 px-3 font-semibold text-slate-700">M${row.monthIdx}</td>
-                        <td class="py-2 px-3 text-slate-500">${row.calYear}-${monthStr}</td>
+                        <td class="py-2 px-3 font-semibold text-slate-700">Y${yearIdx + 1} M${monthInYearIdx}</td>
                         <td class="py-2 px-3 text-slate-500">${row.ageP1}/${row.ageP2}</td>
-                        <td class="py-2 px-3 text-right">${fmt.format(row.startCap)}</td>
-                        <td class="py-2 px-3 text-right text-rose-600">${fmt.format(row.spend)}</td>
-                        <td class="py-2 px-3 text-right text-emerald-600">${fmt.format(row.superInc)}</td>
-                        <td class="py-2 px-3 text-right">${fmt.format(row.netDraw)}</td>
-                        <td class="py-2 px-3 text-right text-slate-500">${fmt.format(row.grossGain)}</td>
-                        <td class="py-2 px-3 text-right text-amber-600">-${fmt.format(row.taxPaid)}</td>
-                        <td class="py-2 px-3 text-right text-emerald-700 font-medium">${fmt.format(row.netGain)}</td>
-                        <td class="py-2 px-3 text-right font-bold text-slate-900">${fmt.format(row.endCap)}</td>
+                        <td class="py-2 px-3 text-right" title="Balance at the beginning of the month: ${fmt.format(row.startCap)}">${fmt.format(row.startCap)}</td>
+                        <td class="py-2 px-3 text-right text-rose-600" title="Spend: ${spendDetail}">${fmt.format(row.spend)}</td>
+                        <td class="py-2 px-3 text-right text-emerald-600" title="NZ Super: ${superDetail}">${fmt.format(row.superInc)}</td>
+                        <td class="py-2 px-3 text-right" title="Net Draw = ${netDrawDetail}">${fmt.format(row.netDraw)}</td>
+                        <td class="py-2 px-3 text-right text-slate-500" title="Investment growth for this month before tax: ${fmt.format(row.grossGain)}">${fmt.format(row.grossGain)}</td>
+                        <td class="py-2 px-3 text-right text-amber-600" title="Tax Drag: ${taxDetail}">-${fmt.format(row.taxPaid)}</td>
+                        <td class="py-2 px-3 text-right text-emerald-700 font-medium" title="Net Gain = ${netGainDetail}">${fmt.format(row.netGain)}</td>
+                        <td class="py-2 px-3 text-right font-bold text-slate-900 ${row.injection > 0 ? 'ring-2 ring-emerald-500 ring-inset' : ''}" title="End Cap = ${endCapDetail}">${fmt.format(row.endCap + row.injection)}</td>
                     `;
         tbody.appendChild(tr);
       });
@@ -519,7 +558,7 @@
   function renderNativeCharts(yearlyData) {
     if (!yearlyData.length) return;
 
-    const maxBal = Math.max(...yearlyData.map(d => d.endCap), 100000);
+    const maxBal = Math.max(...yearlyData.map(d => d.endCap + d.injection), 100000);
     document.getElementById('maxBalanceTag').textContent = `Peak: ${fmt.format(maxBal)}`;
 
     const svg = document.getElementById('balanceSvg');
@@ -528,7 +567,7 @@
 
     const points = yearlyData.map((d, i) => {
       const x = (i / (yearlyData.length - 1)) * width;
-      const y = height - ((d.endCap / maxBal) * (height - 20)) - 10;
+      const y = height - (((d.endCap + d.injection) / maxBal) * (height - 20)) - 10;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
 
@@ -562,9 +601,11 @@
                     <div class="w-1/2 bg-rose-400 rounded-t-sm group-hover:bg-rose-500 transition-all" style="height: ${spendHeightPct}%;"></div>
                     <div class="w-1/2 bg-emerald-500 rounded-t-sm group-hover:bg-emerald-600 transition-all" style="height: ${superHeightPct}%;"></div>
                     <div class="absolute bottom-full mb-2 hidden group-hover:flex flex-col bg-slate-800 text-white text-[10px] p-2 rounded shadow-lg whitespace-nowrap z-30 pointer-events-none">
-                        <span class="font-bold text-slate-300">${d.year} (Age ${d.ageP1})</span>
+                        <span class="font-bold text-slate-300">Y${d.yearIdx + 1} (Age ${d.ageP1})</span>
                         <span class="text-rose-300">Spend: ${fmt.format(d.spend)}</span>
                         <span class="text-emerald-300">Super: ${fmt.format(d.superInc)}</span>
+                        ${d.injection > 0 ? `<span class="text-blue-300">Injection: ${fmt.format(d.injection)}</span>` : ''}
+                        <span class="text-white border-t border-slate-600 mt-1 pt-1">Balance: ${fmt.format(d.endCap + d.injection)}</span>
                     </div>
                 `;
       flowContainer.appendChild(col);
@@ -578,19 +619,25 @@
     let headers, rows;
 
     if (currentViewMode === 'yearly') {
-      headers = ['Year', 'Partner 1 Age', 'Partner 2 Age', 'Starting Balance', 'Annual Spending', 'NZ Super Income', 'Net Draw', 'Gross Investment Growth', 'Tax Drag', 'Net Gain', 'Ending Balance'];
+      headers = ['Year Index', 'Partner 1 Age', 'Partner 2 Age', 'Starting Balance', 'Annual Spending', 'NZ Super Income', 'Net Draw', 'Gross Investment Growth', 'Tax Drag', 'Net Gain', 'Capital Injection', 'Ending Balance'];
       rows = dataToExport.map(d => [
-        d.year, d.ageP1, d.ageP2,
+        `Y${d.yearIdx + 1}`, d.ageP1, d.ageP2,
         d.startCap.toFixed(2), d.spend.toFixed(2), d.superInc.toFixed(2),
-        d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2), d.endCap.toFixed(2)
+        d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2),
+        d.injection.toFixed(2), (d.endCap + d.injection).toFixed(2)
       ]);
     } else {
-      headers = ['Month Index', 'Calendar Year', 'Calendar Month', 'Partner 1 Age', 'Partner 2 Age', 'Starting Balance', 'Monthly Spend', 'NZ Super Income', 'Net Draw', 'Gross Investment Growth', 'Tax Drag', 'Net Gain', 'Ending Balance'];
-      rows = dataToExport.map(d => [
-        d.monthIdx, d.calYear, d.calMonth, d.ageP1, d.ageP2,
-        d.startCap.toFixed(2), d.spend.toFixed(2), d.superInc.toFixed(2),
-        d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2), d.endCap.toFixed(2)
-      ]);
+      headers = ['Month Index', 'Partner 1 Age', 'Partner 2 Age', 'Starting Balance', 'Monthly Spend', 'NZ Super Income', 'Net Draw', 'Gross Investment Growth', 'Tax Drag', 'Net Gain', 'Capital Injection', 'Ending Balance'];
+      rows = dataToExport.map(d => {
+        const yearIdx = Math.floor((d.monthIdx - 1) / 12) + 1;
+        const monthInYearIdx = ((d.monthIdx - 1) % 12) + 1;
+        return [
+          `Y${yearIdx} M${monthInYearIdx}`, d.ageP1, d.ageP2,
+          d.startCap.toFixed(2), d.spend.toFixed(2), d.superInc.toFixed(2),
+          d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2),
+          d.injection.toFixed(2), (d.endCap + d.injection).toFixed(2)
+        ];
+      });
     }
 
     let csvContent = "data:text/csv;charset=utf-8,"
@@ -605,17 +652,21 @@
     document.body.removeChild(link);
   }
 
+  window.updateUI = updateUI;
+
   window.addEventListener('DOMContentLoaded', () => {
     const inputIds = [
       'startBalance', 'returnRate', 'taxRate', 'inflationRate',
       'ageP1', 'ageP2', 'superAgeP1', 'superAgeP2',
       'annualSuper', 'p1Years', 'p1Spend', 'p2Years',
-      'p2Spend', 'p3Spend'
+      'p2Spend', 'p3Spend',
+      'p1Holiday', 'p1Emergency', 'p2Holiday', 'p2Emergency', 'p3Holiday', 'p3Emergency',
+      'secondaryCapAmount', 'secondaryCapYear'
     ];
 
     inputIds.forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('input', updateUI);
+      if (el) el.addEventListener('input', () => window.updateUI());
     });
 
     document.getElementById('exportCsv').addEventListener('click', exportToCSV);

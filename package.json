@@ -1,0 +1,32 @@
+{
+  "name": "retirement-planning",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {}
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sutts/retirement-planning.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sutts/retirement-planning/issues"
+  },
+  "homepage": "https://github.com/sutts/retirement-planning#readme",
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}
