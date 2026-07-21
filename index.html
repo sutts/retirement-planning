@@ -8,12 +8,147 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- NOTE: Tailwind CDN is used for rapid prototyping. For production, consider using a build-tool like Tailwind CLI or PostCSS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <style>
+      @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          .page-break { page-break-before: always !important; }
+      }
+      .print-only { display: none; }
+      
       input[type="number"]::-webkit-inner-spin-button,
       input[type="number"]::-webkit-outer-spin-button {
           -webkit-appearance: none;
           margin: 0;
       }
+
+    /* Horizontal Layout for Inputs */
+    .layout-horizontal #mainLayoutContainer {
+        display: flex;
+        flex-direction: column;
+    }
+    .layout-horizontal #inputsSection {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 1.5rem !important;
+        align-items: flex-start !important;
+        flex-direction: row !important;
+        max-width: none !important;
+        grid-column: span 12 / span 12 !important;
+    }
+    .layout-horizontal #inputsSection > h2 {
+        width: 100%;
+    }
+    .layout-horizontal #inputsSection > div {
+        flex: 1 1 240px !important;
+        border-top: none !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+        display: block !important;
+    }
+    /* Phased spending gets more room so its 3 phases fit side-by-side on one row */
+    .layout-horizontal #inputsSection > #phasedSpendingSection {
+        flex: 3 1 800px !important;
+    }
+    /* In horizontal mode, put all three phase cards on one row */
+    .layout-horizontal #phasesContainer {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.5rem !important;
+    }
+    .layout-horizontal #phasesContainer > div {
+        margin-top: 0 !important;
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+    }
+    .layout-horizontal #contentSection {
+        width: 100% !important;
+        grid-column: span 12 / span 12 !important;
+    }
+
+    body.pdf-printing header,
+    body.pdf-printing .no-print {
+        display: none !important;
+    }
+    body.pdf-printing #mainLayoutContainer {
+        display: block !important;
+    }
+    body.pdf-printing #contentSection {
+        width: 100% !important;
+        max-width: none !important;
+    }
+    /* Compress parameters sidebar size in PDF mode */
+    body.pdf-printing #inputsSection {
+        padding: 0.5rem !important;
+        gap: 0.5rem !important;
+    }
+    body.pdf-printing #inputsSection h3 {
+        font-size: 10px !important;
+        margin-bottom: 0.25rem !important;
+    }
+    body.pdf-printing #inputsSection input {
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
+        font-size: 10px !important;
+    }
+    body.pdf-printing #inputsSection label {
+        font-size: 9px !important;
+    }
+    body.pdf-printing #inputsSection .p-2,
+    body.pdf-printing #inputsSection .p-1.5,
+    body.pdf-printing #inputsSection bg-emerald-50\/50,
+    body.pdf-printing #inputsSection bg-slate-50\/70,
+    body.pdf-printing #inputsSection bg-blue-100\/50,
+    body.pdf-printing #inputsSection bg-emerald-100\/50 {
+        padding: 0.375rem !important;
+    }
+    /* Compress summary cards in PDF mode */
+    body.pdf-printing #summaryCards {
+        gap: 0.375rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    body.pdf-printing #summaryCards > div {
+        padding: 0.375rem 0.5rem !important;
+    }
+    body.pdf-printing #summaryCards div.text-2xl,
+    body.pdf-printing #summaryCards div[id^="stat"] {
+        font-size: 1.125rem !important;
+    }
+    body.pdf-printing #summaryCards p.text-xs {
+        font-size: 8px !important;
+    }
+    /* Compress chart size in PDF mode */
+    body.pdf-printing #chartsSection {
+        padding: 0.5rem !important;
+        margin-top: 0.5rem !important;
+    }
+    body.pdf-printing #chartsSection h2 {
+        font-size: 14px !important;
+    }
+    body.pdf-printing #chartsSection p {
+        font-size: 10px !important;
+    }
+    body.pdf-printing #chartsSection .h-64 {
+        height: 12rem !important; /* 192px instead of 256px */
+        margin-top: 0.25rem !important;
+        padding: 0.5rem !important;
+    }
+    body.pdf-printing #projectionLedgerCard .overflow-x-auto {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    body.pdf-printing #projectionLedgerCard {
+        page-break-before: always !important;
+    }
+    body.pdf-printing table {
+        page-break-inside: auto;
+    }
+    body.pdf-printing tr {
+        page-break-inside: avoid !important;
+        page-break-after: auto;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
@@ -33,14 +168,35 @@
         </div>
       </div>
     </a>
-    <div class="flex items-center gap-2 w-full sm:w-auto">
-        <button id="exportPdf" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-          <span>PDF</span>
-        </button>
-        <button id="exportCsv" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
+    <div class="relative inline-block text-left" id="exportDropdownContainer">
+        <button id="exportBtn" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          <span>CSV</span>
+          <span>Export Report</span>
+          <svg class="w-4 h-4 ml-1 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="exportDropdownMenu" class="hidden absolute right-0 mt-2 w-48 rounded-lg shadow-xl bg-white border border-slate-200 ring-1 ring-black ring-opacity-5 z-[100] divide-y divide-slate-100 overflow-hidden">
+          <button id="exportPdf" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            <span>PDF Report</span>
+          </button>
+          <button id="exportExcel" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span>Excel Spreadsheet</span>
+          </button>
+          <button id="exportCsv" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>CSV Data</span>
+          </button>
+        </div>
+    </div>
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+        <button id="toggleView" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition" title="Change layout view">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          <span id="viewModeText">Horizontal View</span>
+        </button>
+        <button id="toggleChart" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition" title="Toggle chart visibility">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span id="chartVisibilityText">Hide Chart</span>
         </button>
     </div>
     <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -228,251 +384,192 @@
     </div>
   </section>
 
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <div id="mainLayoutContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-    <aside class="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6 h-fit">
-      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+    <aside id="inputsSection" class="lg:col-span-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 h-fit">
+      <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
         <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
         <span>Parameters & Inputs</span>
       </h2>
 
-      <div class="space-y-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">1. Portfolio & Economics</h3>
+      <div class="space-y-2 bg-slate-50/70 p-3 rounded-lg border border-slate-200/60">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">1. Portfolio &amp; Economics</h3>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1" title="The total value of your retirement savings today (e.g., KiwiSaver, term deposits, shares).">Starting Balance (KiwiSaver + Savings)</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">$</span>
-            <input type="number" id="startBalance" value="1500000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="The total value of your retirement savings today (e.g., KiwiSaver, term deposits, shares).">
-          </div>
+          <label class="block text-[10px] font-semibold text-slate-500 mb-0.5" title="The total value of your retirement savings today (e.g., KiwiSaver, term deposits, shares).">Starting Balance ($)</label>
+          <input type="number" id="startBalance" value="1500000" class="w-full px-2 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none" title="The total value of your retirement savings today (e.g., KiwiSaver, term deposits, shares).">
         </div>
 
-        <div class="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100 space-y-2">
-          <span class="text-xs font-bold text-emerald-800 block" title="A one-off lump sum you expect to receive (e.g., house downsize, inheritance).">Secondary Capital Injection e.g House (Inflation Adjusted)</span>
-          <div class="grid grid-cols-2 gap-2">
+        <div class="p-1.5 bg-emerald-50/50 rounded border border-emerald-100 space-y-1">
+          <span class="text-[10px] font-bold text-emerald-800 block" title="A one-off lump sum you expect to receive (e.g., house downsize, inheritance).">Secondary Capital Injection (Inflation Adjusted)</span>
+          <div class="grid grid-cols-2 gap-1.5">
             <div>
-              <label class="text-[10px] text-emerald-700 block font-semibold" title="The amount of the lump sum in today's dollars. It will be adjusted for inflation when injected.">Amount (Today's $)</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="secondaryCapAmount" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="The amount of the lump sum in today's dollars. It will be adjusted for inflation when injected.">
-              </div>
+              <label class="text-[9px] text-emerald-700 block font-semibold" title="The amount of the lump sum in today's dollars. It will be adjusted for inflation when injected.">Amount ($)</label>
+              <input type="number" id="secondaryCapAmount" value="0" class="w-full px-2 py-0.5 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="The amount of the lump sum in today's dollars. It will be adjusted for inflation when injected.">
             </div>
             <div>
-              <label class="text-[10px] text-emerald-700 block font-semibold" title="The number of years from now when you expect to receive this capital.">In Year (Y1=0)</label>
-              <div class="flex items-center gap-1">
-                <input type="number" id="secondaryCapYear" value="10" class="w-full px-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="The number of years from now when you expect to receive this capital.">
-                <span class="text-xs text-emerald-600">YX</span>
-              </div>
+              <label class="text-[9px] text-emerald-700 block font-semibold" title="The number of years from now when you expect to receive this capital.">In Year (0 = Now)</label>
+              <input type="number" id="secondaryCapYear" value="10" class="w-full px-2 py-0.5 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="The number of years from now when you expect to receive this capital.">
             </div>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-3 gap-1">
           <div>
-            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap" title="Expected annual investment return before tax and inflation.">Gross Return (%)</label>
-            <input type="number" id="returnRate" step="0.1" value="4.0" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Expected annual investment return before tax and inflation.">
+            <label class="block text-[9px] font-semibold text-slate-500 mb-0.5" title="Expected annual investment return before tax and inflation.">Return (%)</label>
+            <input type="number" id="returnRate" step="0.1" value="4.0" class="w-full px-1.5 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Expected annual investment return before tax and inflation.">
           </div>
           <div>
-            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap" title="Estimated annual reduction in returns due to taxes (e.g., PIE tax, RWT).">Tax Drag (%)</label>
-            <input type="number" id="taxRate" step="0.1" value="0.8" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Estimated annual reduction in returns due to taxes (e.g., PIE tax, RWT).">
+            <label class="block text-[9px] font-semibold text-slate-500 mb-0.5" title="Estimated annual reduction in returns due to taxes (e.g., PIE tax, RWT).">Tax Drag (%)</label>
+            <input type="number" id="taxRate" step="0.1" value="0.8" class="w-full px-1.5 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Estimated annual reduction in returns due to taxes (e.g., PIE tax, RWT).">
           </div>
           <div>
-            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap" title="Expected annual inflation rate (CPI). Expenses and NZ Super will increase by this rate.">Inflation (%)</label>
-            <input type="number" id="inflationRate" step="0.1" value="2.5" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Expected annual inflation rate (CPI). Expenses and NZ Super will increase by this rate.">
+            <label class="block text-[9px] font-semibold text-slate-500 mb-0.5" title="Expected annual inflation rate (CPI). Expenses and NZ Super will increase by this rate.">Inflation (%)</label>
+            <input type="number" id="inflationRate" step="0.1" value="2.5" class="w-full px-1.5 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Expected annual inflation rate (CPI). Expenses and NZ Super will increase by this rate.">
           </div>
         </div>
       </div>
 
-      <div class="space-y-4 pt-2 border-t border-slate-100">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Ages & NZ Super</h3>
-        <div class="grid grid-cols-2 gap-3">
+      <div class="space-y-2 bg-slate-50/70 p-3 rounded-lg border border-slate-200/60">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Ages &amp; NZ Super</h3>
+        <div class="grid grid-cols-2 gap-1.5">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1" title="Current age of Partner 1.">Partner 1 Age</label>
-            <input type="number" id="ageP1" value="59" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Current age of Partner 1.">
+            <label class="block text-[10px] font-semibold text-slate-500 mb-0.5" title="Current age of Partner 1.">Partner 1 Age</label>
+            <input type="number" id="ageP1" value="59" class="w-full px-1.5 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Current age of Partner 1.">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1" title="Current age of Partner 2.">Partner 2 Age</label>
-            <input type="number" id="ageP2" value="53" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Current age of Partner 2.">
+            <label class="block text-[10px] font-semibold text-slate-500 mb-0.5" title="Current age of Partner 2.">Partner 2 Age</label>
+            <input type="number" id="ageP2" value="53" class="w-full px-1.5 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Current age of Partner 2.">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-1.5">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1" title="Age when Partner 1 starts receiving NZ Super (currently 65).">Super Age (P1)</label>
-            <input type="number" id="superAgeP1" value="65" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Age when Partner 1 starts receiving NZ Super (currently 65).">
+            <label class="block text-[10px] font-semibold text-slate-500 mb-0.5" title="Age when Partner 1 starts receiving NZ Super (currently 65).">Super Age (P1)</label>
+            <input type="number" id="superAgeP1" value="65" class="w-full px-1.5 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Age when Partner 1 starts receiving NZ Super (currently 65).">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1" title="Age when Partner 2 starts receiving NZ Super (currently 65).">Super Age (P2)</label>
-            <input type="number" id="superAgeP2" value="65" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Age when Partner 2 starts receiving NZ Super (currently 65).">
+            <label class="block text-[10px] font-semibold text-slate-500 mb-0.5" title="Age when Partner 2 starts receiving NZ Super (currently 65).">Super Age (P2)</label>
+            <input type="number" id="superAgeP2" value="65" class="w-full px-1.5 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Age when Partner 2 starts receiving NZ Super (currently 65).">
           </div>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1" title="Estimated combined annual NZ Superannuation payment for both partners in today's dollars.">Combined NZ Super / yr (Today's $)</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">$</span>
-            <input type="number" id="annualSuper" value="40000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Estimated combined annual NZ Superannuation payment for both partners in today's dollars.">
-          </div>
+          <label class="block text-[10px] font-semibold text-slate-500 mb-0.5" title="Estimated combined annual NZ Superannuation payment for both partners in today's dollars.">Combined NZ Super / yr ($)</label>
+          <input type="number" id="annualSuper" value="40000" class="w-full px-2 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Estimated combined annual NZ Superannuation payment for both partners in today's dollars.">
         </div>
       </div>
 
-      <div class="space-y-4 pt-2 border-t border-slate-100">
+      <div id="phasedSpendingSection" class="space-y-2 bg-slate-50/70 p-3 rounded-lg border border-slate-200/60">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">3. Phased Spending (Today's $)</h3>
 
-        <div class="p-3 bg-emerald-100/50 rounded-lg border border-emerald-200 space-y-2">
-          <span class="text-xs font-bold text-emerald-800 block" title="The first phase of retirement, typically more active with higher spending.">Phase 1 (Active Years)</span>
-          <div class="grid grid-cols-3 gap-2">
-            <div class="col-span-1">
-              <label class="text-[10px] text-emerald-700 block" title="How many years Phase 1 will last.">Duration</label>
-              <div class="flex items-center gap-1">
+        <div id="phasesContainer" class="space-y-2">
+
+          <div class="p-2 bg-emerald-100/50 rounded-lg border border-emerald-200 space-y-1.5">
+            <span class="text-xs font-bold text-emerald-800 block" title="The first phase of retirement, typically more active with higher spending.">Phase 1 (Active Years)</span>
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-emerald-700 block font-semibold" title="How many years Phase 1 will last.">Duration (yrs)</label>
                 <input type="number" id="p1Years" value="10" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs" title="How many years Phase 1 will last.">
-                <span class="text-xs text-emerald-600">yrs</span>
+              </div>
+              <div>
+                <label class="text-[10px] text-emerald-700 block font-semibold" title="Targeted monthly budget for core living costs in Phase 1 (Today's $).">Monthly Spend ($)</label>
+                <input type="number" id="p1Spend" value="9000" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Targeted monthly budget for core living costs in Phase 1 (Today's $).">
               </div>
             </div>
-            <div class="col-span-2">
-              <label class="text-[10px] text-emerald-700 block" title="Targeted monthly budget for core living costs in Phase 1 (Today's $).">Monthly Spend</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Spend" value="9000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Targeted monthly budget for core living costs in Phase 1 (Today's $).">
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-emerald-700 block font-semibold" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">Monthly Income ($)</label>
+                <input type="number" id="p1Inc" value="0" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">
+              </div>
+              <div>
+                <label class="text-[10px] text-emerald-700 block font-semibold" title="Monthly rent payments if applicable in Phase 1 (Today's $).">Monthly Rent ($)</label>
+                <input type="number" id="p1Rent" value="0" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Monthly rent payments if applicable in Phase 1 (Today's $).">
               </div>
             </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2 mt-2 items-end">
-            <div>
-              <label class="text-[10px] text-emerald-700 block" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">Additional Monthly Income</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-emerald-700 block font-semibold" title="Estimated annual budget for travel and holidays in Phase 1 (Today's $).">Year Holidays ($)</label>
+                <input type="number" id="p1Holiday" value="20000" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Estimated annual budget for travel and holidays in Phase 1 (Today's $).">
               </div>
-            </div>
-            <div>
-              <label class="text-[10px] text-emerald-700 block" title="Monthly rent payments if applicable in Phase 1 (Today's $).">Monthly Rent</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Rent" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Monthly rent payments if applicable in Phase 1 (Today's $).">
-              </div>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2 mt-2">
-            <div>
-              <label class="text-[10px] text-emerald-700 block" title="Estimated annual budget for travel and holidays in Phase 1 (Today's $).">Yearly Holidays</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Holiday" value="20000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Estimated annual budget for travel and holidays in Phase 1 (Today's $).">
-              </div>
-            </div>
-            <div>
-              <label class="text-[10px] text-emerald-700 block" title="Annual contingency for unexpected costs like home/car repairs (Today's $).">Yearly Emergency</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Annual contingency for unexpected costs like home/car repairs (Today's $).">
+              <div>
+                <label class="text-[10px] text-emerald-700 block font-semibold" title="Annual contingency for unexpected costs like home/car repairs (Today's $).">Year Emergency ($)</label>
+                <input type="number" id="p1Emergency" value="5000" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Annual contingency for unexpected costs like home/car repairs (Today's $).">
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="p-3 bg-blue-100/50 rounded-lg border border-blue-200 space-y-2">
-          <span class="text-xs font-bold text-blue-800 block" title="The second phase of retirement, typically characterized by a more relaxed lifestyle.">Phase 2 (Passive Years)</span>
-          <div class="grid grid-cols-3 gap-2">
-            <div class="col-span-1">
-              <label class="text-[10px] text-blue-700 block" title="How many years Phase 2 will last.">Duration</label>
-              <div class="flex items-center gap-1">
+          <div class="p-2 bg-blue-100/50 rounded-lg border border-blue-200 space-y-1.5">
+            <span class="text-xs font-bold text-blue-800 block" title="The second phase of retirement, typically characterized by a more relaxed lifestyle.">Phase 2 (Passive Years)</span>
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-blue-700 block font-semibold" title="How many years Phase 2 will last.">Duration (yrs)</label>
                 <input type="number" id="p2Years" value="10" class="w-full px-2 py-1 border border-blue-300 rounded text-xs" title="How many years Phase 2 will last.">
-                <span class="text-xs text-blue-600">yrs</span>
+              </div>
+              <div>
+                <label class="text-[10px] text-blue-700 block font-semibold" title="Targeted monthly budget for core living costs in Phase 2 (Today's $).">Monthly Spend ($)</label>
+                <input type="number" id="p2Spend" value="6000" class="w-full px-2 py-1 border border-blue-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Targeted monthly budget for core living costs in Phase 2 (Today's $).">
               </div>
             </div>
-            <div class="col-span-2">
-              <label class="text-[10px] text-blue-700 block" title="Targeted monthly budget for core living costs in Phase 2 (Today's $).">Monthly Spend</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Spend" value="6000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Targeted monthly budget for core living costs in Phase 2 (Today's $).">
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-blue-700 block font-semibold" title="Any additional after-tax income during this phase (e.g., rental income).">Monthly Income ($)</label>
+                <input type="number" id="p2Inc" value="0" class="w-full px-2 py-1 border border-blue-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Any additional after-tax income during this phase (e.g., rental income).">
+              </div>
+              <div>
+                <label class="text-[10px] text-blue-700 block font-semibold" title="Monthly rent payments if applicable in Phase 2 (Today's $).">Monthly Rent ($)</label>
+                <input type="number" id="p2Rent" value="0" class="w-full px-2 py-1 border border-blue-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Monthly rent payments if applicable in Phase 2 (Today's $).">
               </div>
             </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2 mt-2 items-end">
-            <div>
-              <label class="text-[10px] text-blue-700 block" title="Any additional after-tax income during this phase (e.g., rental income).">Additional Monthly Income</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Any additional after-tax income during this phase (e.g., rental income).">
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-blue-700 block font-semibold" title="Estimated annual budget for travel and holidays in Phase 2 (Today's $).">Year Holidays ($)</label>
+                <input type="number" id="p2Holiday" value="10000" class="w-full px-2 py-1 border border-blue-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Estimated annual budget for travel and holidays in Phase 2 (Today's $).">
               </div>
-            </div>
-            <div>
-              <label class="text-[10px] text-blue-700 block" title="Monthly rent payments if applicable in Phase 2 (Today's $).">Monthly Rent</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Rent" value="0" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Monthly rent payments if applicable in Phase 2 (Today's $).">
-              </div>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2 mt-2">
-            <div>
-              <label class="text-[10px] text-blue-700 block" title="Estimated annual budget for travel and holidays in Phase 2 (Today's $).">Yearly Holidays</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Holiday" value="10000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Estimated annual budget for travel and holidays in Phase 2 (Today's $).">
-              </div>
-            </div>
-            <div>
-              <label class="text-[10px] text-blue-700 block" title="Annual contingency for unexpected costs in Phase 2 (Today's $).">Yearly Emergency</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Annual contingency for unexpected costs in Phase 2 (Today's $).">
+              <div>
+                <label class="text-[10px] text-blue-700 block font-semibold" title="Annual contingency for unexpected costs in Phase 2 (Today's $).">Year Emergency ($)</label>
+                <input type="number" id="p2Emergency" value="5000" class="w-full px-2 py-1 border border-blue-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Annual contingency for unexpected costs in Phase 2 (Today's $).">
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="p-3 bg-slate-100/40 rounded-lg border border-slate-200 space-y-2">
-          <span class="text-xs font-bold text-slate-700 block" title="The final phase of retirement, typically focusing on essential spending and health support.">Phase 3 (Supportive Years)</span>
-          <div class="grid grid-cols-3 gap-2">
-            <div class="col-span-1">
-              <label class="text-[10px] text-slate-500 block" title="Phase 3 lasts for the remainder of the projection (up to 50 years total).">Duration</label>
-              <span class="text-xs text-slate-500 py-1 block">Remainder</span>
+          <div class="p-2 bg-slate-100/40 rounded-lg border border-slate-200 space-y-1.5">
+            <span class="text-xs font-bold text-slate-700 block" title="The final phase of retirement, typically focusing on essential spending and health support.">Phase 3 (Supportive Years)</span>
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-slate-500 block font-semibold" title="Phase 3 lasts for the remainder of the projection (up to 50 years total).">Duration (yrs)</label>
+                <span class="text-xs text-slate-500 py-1 block">Remainder</span>
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 block font-semibold" title="Targeted monthly budget for core living costs in Phase 3 (Today's $).">Monthly Spend ($)</label>
+                <input type="number" id="p3Spend" value="4000" class="w-full px-2 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Targeted monthly budget for core living costs in Phase 3 (Today's $).">
+              </div>
             </div>
-            <div class="col-span-2">
-              <label class="text-[10px] text-slate-500 block" title="Targeted monthly budget for core living costs in Phase 3 (Today's $).">Monthly Spend</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Spend" value="4000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Targeted monthly budget for core living costs in Phase 3 (Today's $).">
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-slate-500 block font-semibold" title="Any additional after-tax income during this phase.">Monthly Income ($)</label>
+                <input type="number" id="p3Inc" value="0" class="w-full px-2 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Any additional after-tax income during this phase.">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 block font-semibold" title="Monthly rent payments if applicable in Phase 3 (Today's $).">Monthly Rent ($)</label>
+                <input type="number" id="p3Rent" value="0" class="w-full px-2 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Monthly rent payments if applicable in Phase 3 (Today's $).">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="text-[10px] text-slate-500 block font-semibold" title="Estimated annual budget for travel and holidays in Phase 3 (Today's $).">Year Holidays ($)</label>
+                <input type="number" id="p3Holiday" value="2000" class="w-full px-2 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Estimated annual budget for travel and holidays in Phase 3 (Today's $).">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 block font-semibold" title="Annual contingency for unexpected costs in Phase 3 (Today's $).">Year Emergency ($)</label>
+                <input type="number" id="p3Emergency" value="5000" class="w-full px-2 py-1 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="Annual contingency for unexpected costs in Phase 3 (Today's $).">
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-2 mt-2 items-end">
-            <div>
-              <label class="text-[10px] text-slate-500 block" title="Any additional after-tax income during this phase.">Additional Monthly Income</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Any additional after-tax income during this phase.">
-              </div>
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-500 block" title="Monthly rent payments if applicable in Phase 3 (Today's $).">Monthly Rent</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Rent" value="0" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Monthly rent payments if applicable in Phase 3 (Today's $).">
-              </div>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2 mt-2">
-            <div>
-              <label class="text-[10px] text-slate-500 block" title="Estimated annual budget for travel and holidays in Phase 3 (Today's $).">Yearly Holidays</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Holiday" value="2000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Estimated annual budget for travel and holidays in Phase 3 (Today's $).">
-              </div>
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-500 block" title="Annual contingency for unexpected costs in Phase 3 (Today's $).">Yearly Emergency</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Annual contingency for unexpected costs in Phase 3 (Today's $).">
-              </div>
-            </div>
-          </div>
+
         </div>
       </div>
     </aside>
 
-    <div class="lg:col-span-9 space-y-8">
+    <div id="contentSection" class="lg:col-span-9 space-y-8">
 
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div id="chartsSection" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
           <div class="flex justify-between items-center mb-2">
             <div>
@@ -485,7 +582,7 @@
           </div>
           <div class="h-64 mt-4 w-full bg-slate-50 rounded-lg border border-slate-200/60 p-4 relative">
             <!-- Bars Container -->
-            <div class="absolute inset-0 p-4 flex items-end gap-1 z-0" id="flowChartContainer"></div>
+            <div class="absolute inset-0 pt-4 pl-12 pr-12 pb-8 flex items-end gap-1 z-0" id="flowChartContainer"></div>
             <!-- SVG Overlay for Capital Line -->
             <svg id="balanceSvg" class="absolute inset-0 w-full h-full pointer-events-none z-10" preserveAspectRatio="none"></svg>
             <!-- Single Chart Tooltip -->
@@ -494,19 +591,19 @@
           <div class="mt-4 flex items-center gap-6 text-[10px] font-medium text-slate-500">
              <div class="flex items-center gap-1.5">
                <span class="w-3 h-3 bg-rose-400 rounded-sm"></span>
-               <span>Spend</span>
+               <span>Spend (Right Axis)</span>
              </div>
              <div class="flex items-center gap-1.5">
                <span class="w-3 h-3 bg-emerald-500 rounded-sm"></span>
-               <span>NZ Super</span>
+               <span>NZ Super (Right Axis)</span>
              </div>
              <div class="flex items-center gap-1.5">
                <span class="w-3 h-3 bg-blue-500 rounded-sm"></span>
-               <span>Other Income (After Tax)</span>
+               <span>Other Income (After Tax) (Right Axis)</span>
              </div>
              <div class="flex items-center gap-1.5">
                <span class="w-3 h-1 bg-emerald-600 rounded-full"></span>
-               <span>Portfolio Capital (Right Axis)</span>
+               <span>Portfolio Capital (Left Axis)</span>
              </div>
           </div>
         </div>
@@ -1413,16 +1510,17 @@
     if (yearlyData.length === 0) return;
     
     const rect = container.getBoundingClientRect();
-    const paddingX = 16;
+    const paddingLeft = 48;
+    const paddingRight = 48;
     const xLocal = e.clientX - rect.left;
-    const activeWidth = rect.width - 2 * paddingX;
+    const activeWidth = rect.width - paddingLeft - paddingRight;
     
-    const normalizedX = (xLocal - paddingX) / activeWidth;
+    const normalizedX = (xLocal - paddingLeft) / activeWidth;
     const clampedX = Math.max(0, Math.min(1, normalizedX));
     const yearIdx = Math.round(clampedX * (yearlyData.length - 1));
     
     // Position pointer line and tooltip based on actual mouse X (clamped to padding)
-    const xClamped = Math.max(paddingX, Math.min(rect.width - paddingX, xLocal));
+    const xClamped = Math.max(paddingLeft, Math.min(rect.width - paddingRight, xLocal));
     
     // Performance optimization: only update if index changed or significant movement (optional, but keep index check for content)
     const lastIdx = container.dataset.lastIdx;
@@ -1476,6 +1574,12 @@
     }
   }
 
+  function formatShorthand(val) {
+    if (val >= 1000000) return `$${(val / 1000000).toFixed(1).replace(/\.0$/, '')}m`;
+    if (val >= 1000) return `$${Math.round(val / 1000)}k`;
+    return `$${val}`;
+  }
+
   function renderNativeCharts(yearlyData) {
     if (!yearlyData.length) return;
 
@@ -1487,15 +1591,46 @@
     const width = container.clientWidth || 1000;
     const height = container.clientHeight || 256;
 
-    const paddingX = 16;
+    const paddingLeft = 48;
+    const paddingRight = 48;
     const points = yearlyData.map((d, i) => {
-      const x = paddingX + (i / (yearlyData.length - 1)) * (width - 2 * paddingX);
-      const y = height - (((d.endCap) / maxBal) * (height - 40)) - 20; // 20px padding top/bottom
+      const x = paddingLeft + (i / (yearlyData.length - 1)) * (width - paddingLeft - paddingRight);
+      // Project between top padding (20px) and baseline (height - 32px)
+      const y = height - (((d.endCap) / maxBal) * (height - 52)) - 32;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
 
-    const pathD = `M ${paddingX},${height} L ${points.join(' L ')} L ${width - paddingX},${height} Z`;
+    const pathD = `M ${paddingLeft},${height - 32} L ${points.join(' L ')} L ${width - paddingRight},${height - 32} Z`;
     const lineD = `M ${points.join(' L ')}`;
+
+    // Generate Y-axis gridlines & labels (Left = Capital, Right = Spend/Super)
+    const maxSpend = Math.max(...yearlyData.map(d => Math.max(d.spend, d.superInc + (d.addInc || 0))), 10000);
+    const yGridFractions = [0, 0.25, 0.50, 0.75, 1.0];
+    const yGridHtml = yGridFractions.map(f => {
+      const valLeft = f * maxBal;
+      const valRight = f * maxSpend;
+      const yVal = height - (f * (height - 52)) - 32;
+      
+      const labelLeft = formatShorthand(valLeft);
+      const labelRight = formatShorthand(valRight);
+      
+      return `
+        <!-- Left Axis (Capital - Green) -->
+        <text x="${paddingLeft - 8}" y="${yVal + 3}" fill="#059669" font-size="9" font-family="sans-serif" font-weight="600" text-anchor="end">${labelLeft}</text>
+        <!-- Right Axis (Spend/Income - Slate) -->
+        <text x="${width - paddingRight + 8}" y="${yVal + 3}" fill="#64748b" font-size="9" font-family="sans-serif" font-weight="600" text-anchor="start">${labelRight}</text>
+      `;
+    }).join('');
+
+    // Generate X-axis Year tick labels
+    const xGridIndices = [0, 9, 19, 29, 39, 49];
+    const xGridHtml = xGridIndices.map(idx => {
+      const xVal = paddingLeft + (idx / (yearlyData.length - 1)) * (width - paddingLeft - paddingRight);
+      const textLabel = `Year ${idx + 1}`;
+      return `
+        <text x="${xVal}" y="${height - 10}" fill="#94a3b8" font-size="9" font-family="sans-serif" font-weight="600" text-anchor="middle">${textLabel}</text>
+      `;
+    }).join('');
 
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     svg.innerHTML = `
@@ -1505,9 +1640,11 @@
                         <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
                     </linearGradient>
                 </defs>
+                ${yGridHtml}
+                ${xGridHtml}
                 <path d="${pathD}" fill="url(#grad)" />
                 <path d="${lineD}" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-dasharray="0" />
-                <line id="chartPointerLine" x1="-10" y1="0" x2="-10" y2="${height}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4" />
+                <line id="chartPointerLine" x1="-10" y1="0" x2="-10" y2="${height - 32}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4" />
                 <rect id="chartHoverOverlay" width="${width}" height="${height}" fill="transparent" class="cursor-crosshair pointer-events-auto" />
             `;
 
@@ -1517,8 +1654,6 @@
 
     const flowContainer = document.getElementById('flowChartContainer');
     flowContainer.innerHTML = '';
-
-    const maxSpend = Math.max(...yearlyData.map(d => Math.max(d.spend, d.superInc + (d.addInc || 0))), 10000);
 
     yearlyData.forEach(d => {
       const spendHeightPct = (d.spend / maxSpend) * 100;
@@ -1540,6 +1675,10 @@
     const dataToExport = currentViewMode === 'yearly' ? calculatedYearlyData : calculatedMonthlyData;
     if (!dataToExport.length) return;
 
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString();
+
     let headers, rows;
 
     if (currentViewMode === 'yearly') {
@@ -1548,7 +1687,7 @@
         `Y${d.yearIdx + 1}`, d.ageP1, d.ageP2,
         d.startCap.toFixed(2), d.spend.toFixed(2), d.superInc.toFixed(2), d.addInc.toFixed(2),
         d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2),
-        d.injection.toFixed(2), (d.endCap + d.injection).toFixed(2)
+        d.injection.toFixed(2), d.endCap.toFixed(2)  // endCap already includes injection
       ]);
     } else {
       headers = ['Month Index', 'Partner 1 Age', 'Partner 2 Age', 'Starting Balance', 'Monthly Spend', 'NZ Super Income', 'Other Income (After Tax)', 'Net Draw', 'Gross Investment Growth', 'Tax Drag', 'Net Gain', 'Capital Injection', 'Ending Balance'];
@@ -1559,21 +1698,168 @@
           `Y${yearIdx} M${monthInYearIdx}`, d.ageP1, d.ageP2,
           d.startCap.toFixed(2), d.spend.toFixed(2), d.superInc.toFixed(2), d.addInc.toFixed(2),
           d.netDraw.toFixed(2), d.grossGain.toFixed(2), d.taxPaid.toFixed(2), d.netGain.toFixed(2),
-          d.injection.toFixed(2), (d.endCap + d.injection).toFixed(2)
+          d.injection.toFixed(2), d.endCap.toFixed(2)  // endCap already includes injection
         ];
       });
     }
 
+    const metadata = [
+      ['NZ Retirement Planner Report'],
+      [`Exported: ${dateStr} ${timeStr}`],
+      []
+    ];
+
     let csvContent = "data:text/csv;charset=utf-8,"
+      + metadata.map(e => e.join(',')).join('\n')
       + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `nz_retirement_${currentViewMode}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `nz_retirement_${currentViewMode}_${now.toISOString().replace(/[:.]/g, '-')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  function exportToExcel() {
+    const inputs = getInputs();
+    const yearlyData = calculatedYearlyData;
+    const monthlyData = calculatedMonthlyData;
+    if (!yearlyData.length) return;
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString();
+
+    const wb = XLSX.utils.book_new();
+    const currFmt = '$#,##0.00';
+    const pctFmt  = '0.00%';
+
+    // ── Helper: apply a number format to a range of cells ─────────────────────
+    function applyFmt(ws, cellRange, fmt) {
+      if (!ws['!ref']) return;
+      const range = XLSX.utils.decode_range(cellRange);
+      for (let R = range.s.r; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const addr = XLSX.utils.encode_cell({ r: R, c: C });
+          if (ws[addr]) ws[addr].s = { numFmt: fmt };
+        }
+      }
+    }
+
+    // ── Sheet 1: Inputs ───────────────────────────────────────────────────────
+    const inputRows = [
+      ['NZ Retirement Planner — Export'],
+      [`Exported: ${dateStr} ${timeStr}`],
+      [],
+      ['Category', 'Parameter', 'Value'],
+      ['General',              'Starting Balance ($)',       inputs.startBalance],
+      ['General',              'Gross Return Rate (%)',      inputs.grossReturnRate * 100],
+      ['General',              'Tax Drag (%)',               inputs.taxRate * 100],
+      ['General',              'Inflation Rate (%)',         inputs.inflationRate * 100],
+      ['Partners',             'Partner 1 Current Age',     inputs.ageP1],
+      ['Partners',             'Partner 2 Current Age',     inputs.ageP2],
+      ['Partners',             'Partner 1 Super Age',       inputs.superAgeP1],
+      ['Partners',             'Partner 2 Super Age',       inputs.superAgeP2],
+      ['Partners',             'Annual NZ Super (Full, $)', inputs.annualSuper],
+      ['Phase 1 (Active)',     'Duration (Years)',           inputs.p1Years],
+      ['Phase 1 (Active)',     'Monthly Base Spend ($)',     inputs.p1Spend],
+      ['Phase 1 (Active)',     'Monthly Rent ($)',           inputs.p1Rent || 0],
+      ['Phase 1 (Active)',     'Other Monthly Income ($)',   inputs.p1Inc || 0],
+      ['Phase 1 (Active)',     'Yearly Holidays ($)',        inputs.p1Holiday],
+      ['Phase 1 (Active)',     'Yearly Emergency ($)',       inputs.p1Emergency],
+      ['Phase 2 (Transition)', 'Duration (Years)',           inputs.p2Years],
+      ['Phase 2 (Transition)', 'Monthly Base Spend ($)',     inputs.p2Spend],
+      ['Phase 2 (Transition)', 'Monthly Rent ($)',           inputs.p2Rent || 0],
+      ['Phase 2 (Transition)', 'Other Monthly Income ($)',   inputs.p2Inc || 0],
+      ['Phase 2 (Transition)', 'Yearly Holidays ($)',        inputs.p2Holiday],
+      ['Phase 2 (Transition)', 'Yearly Emergency ($)',       inputs.p2Emergency],
+      ['Phase 3 (Late)',       'Monthly Base Spend ($)',     inputs.p3Spend],
+      ['Phase 3 (Late)',       'Monthly Rent ($)',           inputs.p3Rent || 0],
+      ['Phase 3 (Late)',       'Other Monthly Income ($)',   inputs.p3Inc || 0],
+      ['Phase 3 (Late)',       'Yearly Holidays ($)',        inputs.p3Holiday],
+      ['Phase 3 (Late)',       'Yearly Emergency ($)',       inputs.p3Emergency],
+      ['Extra Capital',        'Injection Amount ($)',       inputs.secondaryCapAmount],
+      ['Extra Capital',        'Injection Year (0 = now)',   inputs.secondaryCapYear],
+    ];
+    const wsInputs = XLSX.utils.aoa_to_sheet(inputRows);
+    wsInputs['!cols'] = [{ wch: 22 }, { wch: 30 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(wb, wsInputs, 'Inputs');
+
+    // ── Sheet 2: Yearly Summary ───────────────────────────────────────────────
+    // Values written directly from the JavaScript projection (already geometrically
+    // compounded and phase-aware) — avoids the need for fragile cross-sheet formulas.
+    const yearlyHeaders = [
+      'Year', 'P1 Age', 'P2 Age',
+      'Starting Balance', 'Annual Spending', 'NZ Super Income',
+      'Other Income', 'Net Draw',
+      'Gross Growth', 'Tax Drag', 'Net Gain',
+      'Capital Injection', 'Ending Balance'
+    ];
+    const r2 = v => parseFloat(v.toFixed(2)); // round to 2dp as a number, not a string
+    const yearlyRows = yearlyData.map(d => [
+      `Y${d.yearIdx + 1}`,
+      d.ageP1,
+      d.ageP2,
+      r2(d.startCap),
+      r2(d.spend),
+      r2(d.superInc),
+      r2(d.addInc),
+      r2(d.netDraw),
+      r2(d.grossGain),
+      r2(d.taxPaid),
+      r2(d.netGain),
+      r2(d.injection),
+      r2(d.endCap)   // endCap already includes injection — no double-count
+    ]);
+    const wsYearly = XLSX.utils.aoa_to_sheet([yearlyHeaders, ...yearlyRows]);
+    // Currency columns: D-M (indices 3-12)
+    applyFmt(wsYearly, XLSX.utils.encode_range({ s: { r: 1, c: 3 }, e: { r: yearlyRows.length, c: 12 } }), currFmt);
+    wsYearly['!cols'] = [
+      { wch: 7 }, { wch: 7 }, { wch: 7 },
+      { wch: 17 }, { wch: 17 }, { wch: 17 }, { wch: 14 }, { wch: 12 },
+      { wch: 14 }, { wch: 12 }, { wch: 12 },
+      { wch: 17 }, { wch: 17 }
+    ];
+    // Freeze header row
+    wsYearly['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft' };
+    XLSX.utils.book_append_sheet(wb, wsYearly, 'Yearly Summary');
+
+    // ── Sheet 3: Monthly Detail ───────────────────────────────────────────────
+    const monthlyHeaders = [
+      'Period', 'P1 Age', 'P2 Age',
+      'Starting Balance', 'Monthly Spend', 'NZ Super Income',
+      'Other Income', 'Net Draw',
+      'Gross Growth', 'Tax Drag', 'Net Gain',
+      'Capital Injection', 'Ending Balance'
+    ];
+    const monthlyRows = monthlyData.map(d => {
+      const yIdx = Math.floor((d.monthIdx - 1) / 12) + 1;
+      const mIdx = ((d.monthIdx - 1) % 12) + 1;
+      return [
+        `Y${yIdx} M${mIdx}`,
+        d.ageP1,
+        d.ageP2,
+        r2(d.startCap),
+        r2(d.spend),
+        r2(d.superInc),
+        r2(d.addInc),
+        r2(d.netDraw),
+        r2(d.grossGain),
+        r2(d.taxPaid),
+        r2(d.netGain),
+        r2(d.injection),
+        r2(d.endCap)   // endCap already includes injection
+      ];
+    });
+    const wsMonthly = XLSX.utils.aoa_to_sheet([monthlyHeaders, ...monthlyRows]);
+    applyFmt(wsMonthly, XLSX.utils.encode_range({ s: { r: 1, c: 3 }, e: { r: monthlyRows.length, c: 12 } }), currFmt);
+    wsMonthly['!cols'] = wsYearly['!cols'];
+    wsMonthly['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft' };
+    XLSX.utils.book_append_sheet(wb, wsMonthly, 'Monthly Detail');
+
+    XLSX.writeFile(wb, `nz_retirement_plan_${now.toISOString().replace(/[:.]/g, '-')}.xlsx`);
   }
 
   async function exportToPdf() {
@@ -1584,33 +1870,54 @@
     const scenarioName = currentScenarioId ? (JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]').find(s => s.id === currentScenarioId)?.name || 'Unnamed') : 'Current Plan';
 
     const timestamp = document.createElement('div');
-    timestamp.className = 'print-only text-[12px] font-bold text-slate-600 mb-6 pb-2 border-b border-slate-200';
+    timestamp.className = 'print-only text-[12px] font-bold text-slate-600 mb-6 pb-2 border-b border-slate-200 block';
     timestamp.innerHTML = `NZ Retirement Planner Report | Exported: ${dateStr} ${timeStr} | Scenario: ${scenarioName}`;
     document.body.prepend(timestamp);
 
     const sidebar = document.querySelector('aside');
     const header = document.querySelector('header');
+    const inputsSection = document.getElementById('inputsSection');
+    const chartsSection = document.getElementById('chartsSection');
+    const projectionLedgerCard = document.getElementById('projectionLedgerCard');
+    const summaryCards = document.getElementById('summaryCards');
     
-    sidebar.classList.add('no-print');
+    const isHorizontalAlready = document.body.classList.contains('layout-horizontal');
+    document.body.classList.add('layout-horizontal');
     header.classList.add('no-print');
     document.body.classList.add('pdf-printing');
 
+    // Make inputs visible and reset some layout classes for clean printing
+    inputsSection.classList.remove('lg:col-span-3');
+    inputsSection.classList.add('w-full');
+    
+    // Add page break only for the projection ledger card to start on page 2
+    projectionLedgerCard.classList.add('page-break');
+
     const opt = {
       margin: [10, 5, 10, 5],
-      filename: `nz_retirement_${scenarioName.replace(/\s+/g, '_')}_${now.toISOString().split('T')[0]}.pdf`,
+      filename: `nz_retirement_${scenarioName.replace(/\s+/g, '_')}_${now.toISOString().replace(/[:.]/g, '-')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 1.5, useCORS: true, logging: false },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      pagebreak: { mode: ['css', 'legacy'] }
     };
 
     try {
       await html2pdf().set(opt).from(element).save();
     } finally {
       document.body.removeChild(timestamp);
-      sidebar.classList.remove('no-print');
       header.classList.remove('no-print');
       document.body.classList.remove('pdf-printing');
+      if (!isHorizontalAlready) {
+        document.body.classList.remove('layout-horizontal');
+      }
+      
+      // Restore original classes
+      inputsSection.classList.add('lg:col-span-3');
+      inputsSection.classList.remove('w-full');
+      
+      projectionLedgerCard.classList.remove('page-break');
+      summaryCards.classList.remove('page-break');
     }
   }
 
@@ -1626,7 +1933,22 @@
 
     document.getElementById('newScenario').addEventListener('click', startNewScenario);
     document.getElementById('exportCsv').addEventListener('click', exportToCSV);
+    document.getElementById('exportExcel').addEventListener('click', exportToExcel);
     document.getElementById('exportPdf').addEventListener('click', exportToPdf);
+    
+    // Export dropdown toggle listener
+    const exportBtn = document.getElementById('exportBtn');
+    const exportDropdownMenu = document.getElementById('exportDropdownMenu');
+    if (exportBtn && exportDropdownMenu) {
+      exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportDropdownMenu.classList.toggle('hidden');
+      });
+      document.addEventListener('click', () => {
+        exportDropdownMenu.classList.add('hidden');
+      });
+    }
+
     document.getElementById('saveScenario').addEventListener('click', saveScenario);
     document.getElementById('downloadAllScenarios').addEventListener('click', downloadAllScenarios);
     document.getElementById('uploadScenariosFile').addEventListener('change', uploadScenarios);
@@ -1638,6 +1960,25 @@
       
       renderScenariosList();
       document.getElementById('scenariosModal').classList.remove('hidden');
+    });
+
+    // View & Chart Toggle Logic
+    const toggleViewBtn = document.getElementById('toggleView');
+    const viewModeText = document.getElementById('viewModeText');
+    const toggleChartBtn = document.getElementById('toggleChart');
+    const chartVisibilityText = document.getElementById('chartVisibilityText');
+    const chartsSection = document.getElementById('chartsSection');
+
+    toggleViewBtn.addEventListener('click', () => {
+      const isHorizontal = document.body.classList.toggle('layout-horizontal');
+      viewModeText.textContent = isHorizontal ? 'Vertical View' : 'Horizontal View';
+      // Trigger resize for chart if visible
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    toggleChartBtn.addEventListener('click', () => {
+      const isHidden = chartsSection.classList.toggle('hidden');
+      chartVisibilityText.textContent = isHidden ? 'Show Chart' : 'Hide Chart';
     });
 
     const params = new URLSearchParams(window.location.search);
