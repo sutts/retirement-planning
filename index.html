@@ -84,6 +84,75 @@
     body.pdf-printing #mainLayoutContainer {
         display: block !important;
     }
+    /* PDF print layout adjustments for Stress Test Card */
+    body.pdf-printing #stressTestCard {
+        display: grid !important;
+        grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+        padding: 0.5rem !important;
+        gap: 0.5rem !important;
+        margin-top: 0.5rem !important;
+        border-color: #cbd5e1 !important;
+    }
+    body.pdf-printing #stressTestCard > div:first-child {
+        grid-column: span 4 / span 4 !important;
+        border-right-width: 1px !important;
+        border-color: #f1f5f9 !important;
+        padding: 0.125rem !important;
+    }
+    body.pdf-printing #stressTestCard > div:last-child {
+        grid-column: span 8 / span 8 !important;
+        padding-left: 0.5rem !important;
+    }
+    body.pdf-printing #stressTestCard h3 {
+        font-size: 9px !important;
+        margin-bottom: 0px !important;
+    }
+    body.pdf-printing #stressTestCard p {
+        font-size: 7px !important;
+        margin-bottom: 0.125rem !important;
+    }
+    body.pdf-printing #stressTestCard svg {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+    body.pdf-printing #stressTestCard #safetyScoreValue {
+        font-size: 1.125rem !important;
+    }
+    body.pdf-printing #stressTestCard #safetyScoreLevel {
+        font-size: 7px !important;
+        margin-top: 0px !important;
+    }
+    body.pdf-printing #stressTestCard #safetyScoreDesc {
+        font-size: 7px !important;
+        margin-top: 0.125rem !important;
+        max-width: 120px !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+    }
+    body.pdf-printing #stressTestCard .grid-cols-4 {
+        gap: 0.125rem !important;
+    }
+    body.pdf-printing #stressTestCard .p-2.5 {
+        padding: 0.125rem !important;
+    }
+    body.pdf-printing #stressTestCard .text-xs {
+        font-size: 8px !important;
+    }
+    body.pdf-printing #stressTestCard .text-\[8px\] {
+        font-size: 6px !important;
+    }
+    body.pdf-printing #stressTestCard .bg-emerald-100 {
+        background-color: #ecfdf5 !important;
+        color: #065f46 !important;
+    }
+    body.pdf-printing #stressTestCard .bg-yellow-100 {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+    }
+    body.pdf-printing #stressTestCard .bg-rose-100 {
+        background-color: #ffe4e6 !important;
+        color: #9f1239 !important;
+    }
     body.pdf-printing #contentSection {
         width: 100% !important;
         max-width: none !important;
@@ -208,6 +277,10 @@
           <button id="toggleChart" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition" title="Toggle chart visibility">
             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
             <span id="chartVisibilityText">Hide Chart</span>
+          </button>
+          <button id="toggleStressTest" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition" title="Toggle security score visibility">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            <span id="stressTestVisibilityText">Hide Stress Test</span>
           </button>
         </div>
     </div>
@@ -625,6 +698,101 @@
         </div>
       </div>
 
+      <!-- Stress Test & Sensitivity Matrix -->
+      <div id="stressTestCard" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-12 gap-6">
+        <!-- Left Side: Circular Safety Gauge -->
+        <div class="md:col-span-4 flex flex-col items-center justify-center text-center p-4 border-r border-slate-100">
+          <h3 class="text-xs font-bold text-slate-800 mb-1 uppercase tracking-wider">Retirement Security Score</h3>
+          <p class="text-[9px] text-slate-400 mb-4">Plan resilience under varying markets</p>
+          <div class="relative w-32 h-32 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" stroke="#f1f5f9" stroke-width="8" fill="transparent" />
+              <circle id="safetyScoreRing" cx="50" cy="50" r="40" stroke="#10b981" stroke-width="8" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="50.2" stroke-linecap="round" class="transition-all duration-500" />
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span id="safetyScoreValue" class="text-3xl font-black text-slate-900 leading-none">--</span>
+              <span id="safetyScoreLevel" class="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wide mt-1">--</span>
+            </div>
+          </div>
+          <p id="safetyScoreDesc" class="text-[10px] text-slate-500 mt-4 leading-relaxed max-w-[200px] h-[50px] flex items-center justify-center">
+            Calculating score...
+          </p>
+        </div>
+
+        <!-- Right Side: Sensitivity Heatmap -->
+        <div class="md:col-span-8 flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-slate-800 mb-1 uppercase tracking-wider">Stress Test &amp; Sensitivity Analysis</h3>
+            <p class="text-[10px] text-slate-400 mb-4">Projected portfolio longevity (Years) under return rate and inflation adjustments:</p>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <div class="min-w-[400px] grid grid-cols-4 gap-2 text-center text-[10px]">
+              <!-- Header row -->
+              <div class="font-semibold text-slate-400 flex flex-col items-center justify-center border border-slate-100 rounded bg-slate-50/50">Inflation / Return</div>
+              <div id="returnColLess" class="bg-slate-50 p-2 rounded font-semibold text-slate-700 flex flex-col items-center justify-center">--</div>
+              <div id="returnColCurrent" class="bg-slate-50 p-2 rounded font-semibold text-emerald-700 border border-emerald-200 flex flex-col items-center justify-center">--</div>
+              <div id="returnColMore" class="bg-slate-50 p-2 rounded font-semibold text-slate-700 flex flex-col items-center justify-center">--</div>
+
+              <!-- Row 1: High Inflation -->
+              <div id="inflationRowMore" class="bg-slate-50 p-2 rounded font-semibold text-slate-700 flex flex-col items-center justify-center">--</div>
+              <div id="cell_highInf_lowRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+              <div id="cell_highInf_curRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+              <div id="cell_highInf_highRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+
+              <!-- Row 2: Current Inflation -->
+              <div id="inflationRowCurrent" class="bg-slate-50 p-2 rounded font-semibold text-emerald-700 border border-emerald-200 flex flex-col items-center justify-center">--</div>
+              <div id="cell_curInf_lowRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+              <!-- Current parameters cell (Target) -->
+              <div id="cell_curInf_curRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center border-2 border-amber-400 shadow-md relative ring-4 ring-amber-400/10 transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+                <span class="absolute -top-1.5 -right-1.5 bg-amber-400 text-slate-950 text-[6px] px-1 rounded-full font-black uppercase">Plan</span>
+              </div>
+              <div id="cell_curInf_highRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+
+              <!-- Row 3: Low Inflation -->
+              <div id="inflationRowLess" class="bg-slate-50 p-2 rounded font-semibold text-slate-700 flex flex-col items-center justify-center">--</div>
+              <div id="cell_lowInf_lowRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+              <div id="cell_lowInf_curRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+              <div id="cell_lowInf_highRet" class="p-2.5 rounded-lg font-bold flex flex-col items-center justify-center transition-all duration-300">
+                <span class="text-xs">--</span>
+                <span class="text-[8px] opacity-75 font-normal">years</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-[8px] text-slate-400 font-semibold uppercase tracking-wider">
+            <span>Color Index:</span>
+            <div class="flex gap-4">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-emerald-100 text-emerald-800 rounded-sm inline-block"></span> 40+ Years</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-yellow-100 text-yellow-800 rounded-sm inline-block"></span> 25-40 Years</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-rose-100 text-rose-800 rounded-sm inline-block"></span> &lt; 25 Years</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="projectionLedgerCard" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
@@ -672,7 +840,7 @@
     startBalance: 500000,
     returnRate: 4.0,
     taxRate: 0.8,
-    inflationRate: 2.5,
+    inflationRate: 3.5,
     ageP1: 65,
     ageP2: 65,
     superAgeP1: 65,
@@ -911,6 +1079,7 @@
 
     renderTable();
     renderNativeCharts(yearlyData);
+    calculateStressTest(p);
     
     // Auto-save state to localStorage if not currently editing a named scenario
     // (Existing behavior preserved)
@@ -921,6 +1090,118 @@
          if (el) state[id] = el.value;
        });
        localStorage.setItem('nz_retirement_planner_state', JSON.stringify(state));
+    }
+  }
+
+  function calculateStressTest(p) {
+    const curReturn = p.grossReturnRate * 100;
+    const curInflation = p.inflationRate * 100;
+
+    const returnVariations = [curReturn - 1.5, curReturn, curReturn + 1.5];
+    const inflationVariations = [curInflation + 1.0, curInflation, curInflation - 1.0];
+
+    // Label coordinates
+    document.getElementById('returnColLess').innerHTML = `<span>Low Return</span><span class="font-bold font-mono text-[9px] mt-0.5 text-slate-500">${(curReturn - 1.5).toFixed(1)}%</span>`;
+    document.getElementById('returnColCurrent').innerHTML = `<span>Current</span><span class="font-bold font-mono text-[9px] mt-0.5 text-emerald-600">${curReturn.toFixed(1)}%</span>`;
+    document.getElementById('returnColMore').innerHTML = `<span>High Return</span><span class="font-bold font-mono text-[9px] mt-0.5 text-slate-500">${(curReturn + 1.5).toFixed(1)}%</span>`;
+
+    document.getElementById('inflationRowMore').innerHTML = `<span>High Inflation</span><span class="font-bold font-mono text-[9px] mt-0.5 text-slate-500">${(curInflation + 1.0).toFixed(1)}%</span>`;
+    document.getElementById('inflationRowCurrent').innerHTML = `<span>Current</span><span class="font-bold font-mono text-[9px] mt-0.5 text-emerald-600">${curInflation.toFixed(1)}%</span>`;
+    document.getElementById('inflationRowLess').innerHTML = `<span>Low Inflation</span><span class="font-bold font-mono text-[9px] mt-0.5 text-slate-500">${(curInflation - 1.0).toFixed(1)}%</span>`;
+
+    const cellMappings = [
+      { id: 'cell_highInf_lowRet', infIdx: 0, retIdx: 0 },
+      { id: 'cell_highInf_curRet', infIdx: 0, retIdx: 1 },
+      { id: 'cell_highInf_highRet', infIdx: 0, retIdx: 2 },
+      { id: 'cell_curInf_lowRet', infIdx: 1, retIdx: 0 },
+      { id: 'cell_curInf_curRet', infIdx: 1, retIdx: 1 },
+      { id: 'cell_curInf_highRet', infIdx: 1, retIdx: 2 },
+      { id: 'cell_lowInf_lowRet', infIdx: 2, retIdx: 0 },
+      { id: 'cell_lowInf_curRet', infIdx: 2, retIdx: 1 },
+      { id: 'cell_lowInf_highRet', infIdx: 2, retIdx: 2 }
+    ];
+
+    let totalLongevity = 0;
+
+    cellMappings.forEach(mapping => {
+      const testP = {
+        ...p,
+        grossReturnRate: returnVariations[mapping.retIdx] / 100,
+        inflationRate: inflationVariations[mapping.infIdx] / 100
+      };
+
+      const res = calculateProjections(testP);
+      const longevityYears = res.yearsDepleted !== null ? res.yearsDepleted : 50;
+      totalLongevity += longevityYears;
+
+      const cell = document.getElementById(mapping.id);
+      if (cell) {
+        const spanVal = cell.querySelector('span.text-xs');
+        if (spanVal) {
+          spanVal.textContent = longevityYears >= 50 ? '50+' : longevityYears.toString();
+        }
+
+        let colorClass = 'bg-rose-100 text-rose-800';
+        if (longevityYears >= 40) {
+          colorClass = 'bg-emerald-100 text-emerald-800';
+        } else if (longevityYears >= 25) {
+          colorClass = 'bg-yellow-100 text-yellow-800';
+        }
+
+        cell.className = cell.id === 'cell_curInf_curRet'
+          ? `p-2.5 rounded-lg font-bold flex flex-col items-center justify-center border-2 border-amber-400 ${colorClass} shadow-md relative ring-4 ring-amber-400/10 transition-all duration-300`
+          : `p-2.5 rounded-lg font-bold flex flex-col items-center justify-center ${colorClass} transition-all duration-300`;
+      }
+    });
+
+    // Score & Gauge Updates
+    const avgLongevity = totalLongevity / 9;
+    const score = Math.round((avgLongevity / 50) * 100);
+
+    const scoreVal = document.getElementById('safetyScoreValue');
+    const scoreLvl = document.getElementById('safetyScoreLevel');
+    const scoreDesc = document.getElementById('safetyScoreDesc');
+    const scoreRing = document.getElementById('safetyScoreRing');
+
+    if (scoreVal) scoreVal.textContent = score;
+
+    let strokeColor = '#10b981';
+    let levelText = 'Strong';
+    let levelColorClass = 'text-emerald-600';
+    let descText = 'Excellent resilience! Your plan survives standard and adverse economic scenarios with minimal depletion risk.';
+
+    if (score >= 85) {
+      strokeColor = '#10b981';
+      levelText = 'Strong';
+      levelColorClass = 'text-emerald-600';
+      descText = 'Excellent resilience! Your plan survives standard and adverse economic scenarios with minimal depletion risk.';
+    } else if (score >= 60) {
+      strokeColor = '#eab308';
+      levelText = 'Moderate';
+      levelColorClass = 'text-yellow-600';
+      descText = 'Good baseline stability. However, combining high inflation and low returns will deplete capital prematurely.';
+    } else if (score >= 35) {
+      strokeColor = '#f97316';
+      levelText = 'Vulnerable';
+      levelColorClass = 'text-orange-500';
+      descText = 'Plan is sensitive to market changes. Consider lowering early spend, delaying retirement, or increasing savings.';
+    } else {
+      strokeColor = '#ef4444';
+      levelText = 'High Risk';
+      levelColorClass = 'text-rose-600';
+      descText = 'Significant depletion risk. Capital is consumed quickly even under current baseline conditions. Adjustments highly recommended.';
+    }
+
+    if (scoreLvl) {
+      scoreLvl.textContent = levelText;
+      scoreLvl.className = `text-[9px] font-extrabold uppercase tracking-wide mt-1 ${levelColorClass}`;
+    }
+    if (scoreDesc) scoreDesc.textContent = descText;
+
+    if (scoreRing) {
+      scoreRing.setAttribute('stroke', strokeColor);
+      const dashOffset = 251.2 - (score / 100) * 251.2;
+      scoreRing.style.strokeDashoffset = dashOffset;
     }
   }
 
@@ -1998,6 +2279,9 @@
     const viewModeText = document.getElementById('viewModeText');
     const toggleChartBtn = document.getElementById('toggleChart');
     const chartVisibilityText = document.getElementById('chartVisibilityText');
+    const toggleStressTestBtn = document.getElementById('toggleStressTest');
+    const stressTestVisibilityText = document.getElementById('stressTestVisibilityText');
+    const stressTestCard = document.getElementById('stressTestCard');
     const chartsSection = document.getElementById('chartsSection');
     const ledgerTableContainer = document.getElementById('ledgerTableContainer');
     const projectionLedgerCard = document.getElementById('projectionLedgerCard');
@@ -2006,15 +2290,28 @@
     function updateTableHeight() {
       const isHorizontal = document.body.classList.contains('layout-horizontal');
       const isChartHidden = chartsSection.classList.contains('hidden');
+      const stressTestCard = document.getElementById('stressTestCard');
 
       if (isChartHidden && !isHorizontal) {
         const inputsHeight = inputsSection.offsetHeight;
         if (inputsHeight > 0) {
-          projectionLedgerCard.style.height = `${inputsHeight}px`;
-          projectionLedgerCard.classList.add('flex', 'flex-col');
-          ledgerTableContainer.classList.remove('max-h-[500px]');
-          ledgerTableContainer.classList.add('flex-grow', 'overflow-y-auto');
-          ledgerTableContainer.style.maxHeight = 'none';
+          const stressCardHeight = (stressTestCard && !stressTestCard.classList.contains('hidden')) ? stressTestCard.offsetHeight : 0;
+          const gapSpacing = stressCardHeight > 0 ? 32 : 0; // Tailwind spacing space-y-8 (32px)
+          const targetLedgerHeight = inputsHeight - stressCardHeight - gapSpacing;
+
+          if (targetLedgerHeight > 150) {
+            projectionLedgerCard.style.height = `${targetLedgerHeight}px`;
+            projectionLedgerCard.classList.add('flex', 'flex-col');
+            ledgerTableContainer.classList.remove('max-h-[500px]');
+            ledgerTableContainer.classList.add('flex-grow', 'overflow-y-auto');
+            ledgerTableContainer.style.maxHeight = 'none';
+          } else {
+            projectionLedgerCard.style.height = '';
+            projectionLedgerCard.classList.remove('flex', 'flex-col');
+            ledgerTableContainer.classList.remove('flex-grow', 'overflow-y-auto');
+            ledgerTableContainer.classList.add('max-h-[500px]');
+            ledgerTableContainer.style.maxHeight = '';
+          }
         }
       } else {
         projectionLedgerCard.style.height = '';
@@ -2036,6 +2333,12 @@
     toggleChartBtn.addEventListener('click', () => {
       const isHidden = chartsSection.classList.toggle('hidden');
       chartVisibilityText.textContent = isHidden ? 'Show Chart' : 'Hide Chart';
+      updateTableHeight();
+    });
+
+    toggleStressTestBtn.addEventListener('click', () => {
+      const isHidden = stressTestCard.classList.toggle('hidden');
+      stressTestVisibilityText.textContent = isHidden ? 'Show Stress Test' : 'Hide Stress Test';
       updateTableHeight();
     });
 
