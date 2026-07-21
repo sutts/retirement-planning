@@ -238,27 +238,27 @@
       <div class="space-y-4">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">1. Portfolio & Economics</h3>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Starting Balance (KiwiSaver + Savings)</label>
+          <label class="block text-xs font-medium text-slate-700 mb-1" title="The total value of your retirement savings today (e.g., KiwiSaver, term deposits, shares).">Starting Balance (KiwiSaver + Savings)</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">$</span>
-            <input type="number" id="startBalance" value="1500000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <input type="number" id="startBalance" value="1500000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="The total value of your retirement savings today (e.g., KiwiSaver, term deposits, shares).">
           </div>
         </div>
 
         <div class="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100 space-y-2">
-          <span class="text-xs font-bold text-emerald-800 block">Secondary Capital Injection (Inflation Adjusted)</span>
+          <span class="text-xs font-bold text-emerald-800 block" title="A one-off lump sum you expect to receive (e.g., house downsize, inheritance).">Secondary Capital Injection e.g House (Inflation Adjusted)</span>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[10px] text-emerald-700 block font-semibold">Amount (Today's $)</label>
+              <label class="text-[10px] text-emerald-700 block font-semibold" title="The amount of the lump sum in today's dollars. It will be adjusted for inflation when injected.">Amount (Today's $)</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="secondaryCapAmount" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none">
+                <input type="number" id="secondaryCapAmount" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="The amount of the lump sum in today's dollars. It will be adjusted for inflation when injected.">
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-emerald-700 block font-semibold">In Year (Y1=0)</label>
+              <label class="text-[10px] text-emerald-700 block font-semibold" title="The number of years from now when you expect to receive this capital.">In Year (Y1=0)</label>
               <div class="flex items-center gap-1">
-                <input type="number" id="secondaryCapYear" value="10" class="w-full px-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none">
+                <input type="number" id="secondaryCapYear" value="10" class="w-full px-2 py-1 border border-emerald-200 rounded text-xs focus:ring-1 focus:ring-emerald-500 outline-none" title="The number of years from now when you expect to receive this capital.">
                 <span class="text-xs text-emerald-600">YX</span>
               </div>
             </div>
@@ -266,16 +266,16 @@
         </div>
         <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap">Gross Return (%)</label>
-            <input type="number" id="returnRate" step="0.1" value="4.0" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap" title="Expected annual investment return before tax and inflation.">Gross Return (%)</label>
+            <input type="number" id="returnRate" step="0.1" value="4.0" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Expected annual investment return before tax and inflation.">
           </div>
           <div>
-            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap">Tax Drag (%)</label>
-            <input type="number" id="taxRate" step="0.1" value="0.8" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap" title="Estimated annual reduction in returns due to taxes (e.g., PIE tax, RWT).">Tax Drag (%)</label>
+            <input type="number" id="taxRate" step="0.1" value="0.8" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Estimated annual reduction in returns due to taxes (e.g., PIE tax, RWT).">
           </div>
           <div>
-            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap">Inflation (%)</label>
-            <input type="number" id="inflationRate" step="0.1" value="2.5" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <label class="block text-[10px] font-medium text-slate-700 mb-1 whitespace-nowrap" title="Expected annual inflation rate (CPI). Expenses and NZ Super will increase by this rate.">Inflation (%)</label>
+            <input type="number" id="inflationRate" step="0.1" value="2.5" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Expected annual inflation rate (CPI). Expenses and NZ Super will increase by this rate.">
           </div>
         </div>
       </div>
@@ -284,29 +284,29 @@
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Ages & NZ Super</h3>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Partner 1 Age</label>
-            <input type="number" id="ageP1" value="59" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <label class="block text-xs font-medium text-slate-700 mb-1" title="Current age of Partner 1.">Partner 1 Age</label>
+            <input type="number" id="ageP1" value="59" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Current age of Partner 1.">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Partner 2 Age</label>
-            <input type="number" id="ageP2" value="53" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <label class="block text-xs font-medium text-slate-700 mb-1" title="Current age of Partner 2.">Partner 2 Age</label>
+            <input type="number" id="ageP2" value="53" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Current age of Partner 2.">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Super Age (P1)</label>
-            <input type="number" id="superAgeP1" value="65" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <label class="block text-xs font-medium text-slate-700 mb-1" title="Age when Partner 1 starts receiving NZ Super (currently 65).">Super Age (P1)</label>
+            <input type="number" id="superAgeP1" value="65" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Age when Partner 1 starts receiving NZ Super (currently 65).">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Super Age (P2)</label>
-            <input type="number" id="superAgeP2" value="65" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <label class="block text-xs font-medium text-slate-700 mb-1" title="Age when Partner 2 starts receiving NZ Super (currently 65).">Super Age (P2)</label>
+            <input type="number" id="superAgeP2" value="65" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Age when Partner 2 starts receiving NZ Super (currently 65).">
           </div>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Combined NZ Super / yr (Today's $)</label>
+          <label class="block text-xs font-medium text-slate-700 mb-1" title="Estimated combined annual NZ Superannuation payment for both partners in today's dollars.">Combined NZ Super / yr (Today's $)</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">$</span>
-            <input type="number" id="annualSuper" value="40000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <input type="number" id="annualSuper" value="40000" class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" title="Estimated combined annual NZ Superannuation payment for both partners in today's dollars.">
           </div>
         </div>
       </div>
@@ -315,132 +315,132 @@
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">3. Phased Spending (Today's $)</h3>
 
         <div class="p-3 bg-emerald-100/50 rounded-lg border border-emerald-200 space-y-2">
-          <span class="text-xs font-bold text-emerald-800 block">Phase 1 (Active Years)</span>
+          <span class="text-xs font-bold text-emerald-800 block" title="The first phase of retirement, typically more active with higher spending.">Phase 1 (Active Years)</span>
           <div class="grid grid-cols-3 gap-2">
             <div class="col-span-1">
-              <label class="text-[10px] text-emerald-700 block">Duration</label>
+              <label class="text-[10px] text-emerald-700 block" title="How many years Phase 1 will last.">Duration</label>
               <div class="flex items-center gap-1">
-                <input type="number" id="p1Years" value="10" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs">
+                <input type="number" id="p1Years" value="10" class="w-full px-2 py-1 border border-emerald-300 rounded text-xs" title="How many years Phase 1 will last.">
                 <span class="text-xs text-emerald-600">yrs</span>
               </div>
             </div>
             <div class="col-span-2">
-              <label class="text-[10px] text-emerald-700 block">Monthly Spend</label>
+              <label class="text-[10px] text-emerald-700 block" title="Targeted monthly budget for core living costs in Phase 1 (Today's $).">Monthly Spend</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Spend" value="9000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs">
+                <input type="number" id="p1Spend" value="9000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Targeted monthly budget for core living costs in Phase 1 (Today's $).">
               </div>
             </div>
           </div>
           <div class="grid grid-cols-1 gap-2 mt-2">
             <div>
-              <label class="text-[10px] text-emerald-700 block">Additional Monthly Income (After Tax)</label>
+              <label class="text-[10px] text-emerald-700 block" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">Additional Monthly Income (After Tax)</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs">
+                <input type="number" id="p1Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">
               </div>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 mt-2">
             <div>
-              <label class="text-[10px] text-emerald-700 block">Yearly Holidays</label>
+              <label class="text-[10px] text-emerald-700 block" title="Estimated annual budget for travel and holidays in Phase 1 (Today's $).">Yearly Holidays</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Holiday" value="20000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs">
+                <input type="number" id="p1Holiday" value="20000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Estimated annual budget for travel and holidays in Phase 1 (Today's $).">
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-emerald-700 block">Yearly Emergency</label>
+              <label class="text-[10px] text-emerald-700 block" title="Annual contingency for unexpected costs like home/car repairs (Today's $).">Yearly Emergency</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
-                <input type="number" id="p1Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs">
+                <input type="number" id="p1Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Annual contingency for unexpected costs like home/car repairs (Today's $).">
               </div>
             </div>
           </div>
         </div>
 
         <div class="p-3 bg-blue-100/50 rounded-lg border border-blue-200 space-y-2">
-          <span class="text-xs font-bold text-blue-800 block">Phase 2 (Passive Years)</span>
+          <span class="text-xs font-bold text-blue-800 block" title="The second phase of retirement, typically characterized by a more relaxed lifestyle.">Phase 2 (Passive Years)</span>
           <div class="grid grid-cols-3 gap-2">
             <div class="col-span-1">
-              <label class="text-[10px] text-blue-700 block">Duration</label>
+              <label class="text-[10px] text-blue-700 block" title="How many years Phase 2 will last.">Duration</label>
               <div class="flex items-center gap-1">
-                <input type="number" id="p2Years" value="10" class="w-full px-2 py-1 border border-blue-300 rounded text-xs">
+                <input type="number" id="p2Years" value="10" class="w-full px-2 py-1 border border-blue-300 rounded text-xs" title="How many years Phase 2 will last.">
                 <span class="text-xs text-blue-600">yrs</span>
               </div>
             </div>
             <div class="col-span-2">
-              <label class="text-[10px] text-blue-700 block">Monthly Spend</label>
+              <label class="text-[10px] text-blue-700 block" title="Targeted monthly budget for core living costs in Phase 2 (Today's $).">Monthly Spend</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Spend" value="6000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs">
+                <input type="number" id="p2Spend" value="6000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Targeted monthly budget for core living costs in Phase 2 (Today's $).">
               </div>
             </div>
           </div>
           <div class="grid grid-cols-1 gap-2 mt-2">
             <div>
-              <label class="text-[10px] text-blue-700 block">Additional Monthly Income (After Tax)</label>
+              <label class="text-[10px] text-blue-700 block" title="Any additional after-tax income during this phase (e.g., rental income).">Additional Monthly Income (After Tax)</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs">
+                <input type="number" id="p2Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Any additional after-tax income during this phase (e.g., rental income).">
               </div>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 mt-2">
             <div>
-              <label class="text-[10px] text-blue-700 block">Yearly Holidays</label>
+              <label class="text-[10px] text-blue-700 block" title="Estimated annual budget for travel and holidays in Phase 2 (Today's $).">Yearly Holidays</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Holiday" value="10000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs">
+                <input type="number" id="p2Holiday" value="10000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Estimated annual budget for travel and holidays in Phase 2 (Today's $).">
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-blue-700 block">Yearly Emergency</label>
+              <label class="text-[10px] text-blue-700 block" title="Annual contingency for unexpected costs in Phase 2 (Today's $).">Yearly Emergency</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
-                <input type="number" id="p2Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs">
+                <input type="number" id="p2Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Annual contingency for unexpected costs in Phase 2 (Today's $).">
               </div>
             </div>
           </div>
         </div>
 
         <div class="p-3 bg-slate-100/40 rounded-lg border border-slate-200 space-y-2">
-          <span class="text-xs font-bold text-slate-700 block">Phase 3 (Supportive Years)</span>
+          <span class="text-xs font-bold text-slate-700 block" title="The final phase of retirement, typically focusing on essential spending and health support.">Phase 3 (Supportive Years)</span>
           <div class="grid grid-cols-3 gap-2">
             <div class="col-span-1">
-              <label class="text-[10px] text-slate-500 block">Duration</label>
+              <label class="text-[10px] text-slate-500 block" title="Phase 3 lasts for the remainder of the projection (up to 50 years total).">Duration</label>
               <span class="text-xs text-slate-500 py-1 block">Remainder</span>
             </div>
             <div class="col-span-2">
-              <label class="text-[10px] text-slate-500 block">Monthly Spend</label>
+              <label class="text-[10px] text-slate-500 block" title="Targeted monthly budget for core living costs in Phase 3 (Today's $).">Monthly Spend</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Spend" value="4000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+                <input type="number" id="p3Spend" value="4000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Targeted monthly budget for core living costs in Phase 3 (Today's $).">
               </div>
             </div>
           </div>
           <div class="grid grid-cols-1 gap-2 mt-2">
             <div>
-              <label class="text-[10px] text-slate-500 block">Additional Monthly Income (After Tax)</label>
+              <label class="text-[10px] text-slate-500 block" title="Any additional after-tax income during this phase.">Additional Monthly Income (After Tax)</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+                <input type="number" id="p3Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Any additional after-tax income during this phase.">
               </div>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 mt-2">
             <div>
-              <label class="text-[10px] text-slate-500 block">Yearly Holidays</label>
+              <label class="text-[10px] text-slate-500 block" title="Estimated annual budget for travel and holidays in Phase 3 (Today's $).">Yearly Holidays</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Holiday" value="2000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+                <input type="number" id="p3Holiday" value="2000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Estimated annual budget for travel and holidays in Phase 3 (Today's $).">
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-slate-500 block">Yearly Emergency</label>
+              <label class="text-[10px] text-slate-500 block" title="Annual contingency for unexpected costs in Phase 3 (Today's $).">Yearly Emergency</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
-                <input type="number" id="p3Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs">
+                <input type="number" id="p3Emergency" value="5000" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Annual contingency for unexpected costs in Phase 3 (Today's $).">
               </div>
             </div>
           </div>
@@ -1610,7 +1610,7 @@
 
 <footer class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 border-t border-slate-200">
   <p class="text-center text-[10px] text-slate-400">
-    Last updated: 2026-07-20 (Commit: b961b23)
+    Last updated: 2026-07-21 12:22 (Commit: e60a57c)
   </p>
 </footer>
 
