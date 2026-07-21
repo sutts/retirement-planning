@@ -423,28 +423,38 @@
 
     <div class="lg:col-span-9 space-y-8">
 
-      <div id="chartsCard" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
           <div class="flex justify-between items-center mb-2">
             <div>
-              <h2 class="text-base font-bold text-slate-900">Portfolio Capital Trajectory</h2>
-              <p class="text-xs text-slate-500">Projected year-end balances over 50 years</p>
+              <h2 class="text-base font-bold text-slate-900">Capital & Income Trajectory</h2>
+              <p class="text-xs text-slate-500">Projected capital (Line) vs. Spend & Super (Bars)</p>
             </div>
-            <span id="maxBalanceTag" class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">Peak: $0</span>
-          </div>
-          <div class="h-48 mt-4 w-full bg-slate-50 rounded-lg border border-slate-200/60 p-2 flex items-end relative overflow-hidden" id="balanceChartContainer">
-            <svg id="balanceSvg" class="w-full h-full" preserveAspectRatio="none"></svg>
-          </div>
-        </div>
-
-        <div class="pt-6 border-t border-slate-100">
-          <div class="flex justify-between items-center mb-2">
-            <div>
-              <h2 class="text-base font-bold text-slate-900">Income vs. Spending Breakdown</h2>
-              <p class="text-xs text-slate-500">Comparing total expenditures (Rose) with NZ Super income (Emerald)</p>
+            <div class="flex items-center gap-4">
+              <div id="maxBalanceTag" class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">Peak: $0</div>
             </div>
           </div>
-          <div class="h-48 mt-4 w-full bg-slate-50 rounded-lg border border-slate-200/60 p-2 flex items-end gap-1" id="flowChartContainer">
+          <div class="h-64 mt-4 w-full bg-slate-50 rounded-lg border border-slate-200/60 p-4 relative">
+            <!-- Bars Container -->
+            <div class="absolute inset-0 p-4 flex items-end gap-1 z-0" id="flowChartContainer"></div>
+            <!-- SVG Overlay for Capital Line -->
+            <svg id="balanceSvg" class="absolute inset-0 w-full h-full pointer-events-none z-10" preserveAspectRatio="none"></svg>
+            <!-- Single Chart Tooltip -->
+            <div id="chartTooltip" class="absolute hidden flex-col bg-slate-800 text-white text-[10px] p-2 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none select-none"></div>
+          </div>
+          <div class="mt-4 flex items-center gap-6 text-[10px] font-medium text-slate-500">
+             <div class="flex items-center gap-1.5">
+               <span class="w-3 h-3 bg-rose-400 rounded-sm"></span>
+               <span>Annual Spend</span>
+             </div>
+             <div class="flex items-center gap-1.5">
+               <span class="w-3 h-3 bg-emerald-500 rounded-sm"></span>
+               <span>NZ Super</span>
+             </div>
+             <div class="flex items-center gap-1.5">
+               <span class="w-3 h-1 bg-emerald-600 rounded-full"></span>
+               <span>Portfolio Capital (Right Axis)</span>
+             </div>
           </div>
         </div>
       </div>
@@ -1245,8 +1255,11 @@
         const spendDetail = `(${fmt.format(baseMonthly)} base + ${fmt.format(yearlyExtra / 12)} extra) × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.spend)}`;
         const superDetail = `(${fmt.format(p.annualSuper / 12)} base × ${((row.superInc / ((p.annualSuper / 12) * inflationMultMonthly)) * 100).toFixed(0)}% eligibility) × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.superInc)}`;
         const taxableBase = Math.max(0, row.startCap - (row.netDraw / 2));
-        const monthlyTaxRate = Math.pow(1 + p.taxRate, 1/12) - 1;
-        const taxDetail = `Estimated portfolio tax: (${fmt.format(taxableBase)} taxable base × ${(monthlyTaxRate * 100).toFixed(3)}% monthly tax drag) = ${fmt.format(row.taxPaid)}`;
+        const netAnnualRate = Math.max(0, p.grossReturnRate - p.taxRate);
+        const monthlyNetRate = Math.pow(1 + netAnnualRate, 1/12) - 1;
+        const monthlyGrossRate = Math.pow(1 + p.grossReturnRate, 1/12) - 1;
+        const effectiveMonthlyTaxRate = monthlyGrossRate - monthlyNetRate;
+        const taxDetail = `Estimated portfolio tax: (${fmt.format(taxableBase)} taxable base × ${(effectiveMonthlyTaxRate * 100).toFixed(3)}% effective monthly tax drag) = ${fmt.format(row.taxPaid)}`;
 
         const netDrawDetail = `${fmt.format(row.spend)} (Spend) - ${fmt.format(row.superInc)} (Super) = ${fmt.format(row.netDraw)}`;
         const netGainDetail = `${fmt.format(row.grossGain)} (Gross) - ${fmt.format(row.taxPaid)} (Tax) = ${fmt.format(row.netGain)}`;
@@ -1273,39 +1286,91 @@
   }
 
   function hideChartHover() {
-    document.getElementById('chartTooltip')?.classList.add('hidden');
-    document.getElementById('chartPointerLine')?.setAttribute('x1', -10);
-    document.getElementById('chartPointerLine')?.setAttribute('x2', -10);
+    const flowContainer = document.getElementById('flowChartContainer');
+    const container = flowContainer.parentElement;
+    delete container.dataset.lastIdx;
+    
+    const tooltip = document.getElementById('chartTooltip');
+    if (tooltip) {
+      tooltip.classList.add('hidden');
+      tooltip.classList.remove('flex');
+      tooltip.style.top = '';
+      tooltip.style.left = '';
+    }
+
+    const pointerLine = document.getElementById('chartPointerLine');
+    if (pointerLine) {
+      pointerLine.setAttribute('x1', -10);
+      pointerLine.setAttribute('x2', -10);
+    }
   }
 
   function handleChartHover(e) {
     const svg = document.getElementById('balanceSvg');
-    const tip = document.getElementById('chartTooltip');
-    const line = document.getElementById('chartPointerLine');
-    const rect = svg.getBoundingClientRect();
+    const container = svg.parentElement;
     
-    // Scale mouse position to SVG viewbox
-    const x = ((e.clientX - rect.left) / rect.width) * 1000;
-    
-    // Find closest year
     const yearlyData = calculatedYearlyData;
-    const yearIdx = Math.round((x / 1000) * (yearlyData.length - 1));
-    const data = yearlyData[yearIdx];
+    if (yearlyData.length === 0) return;
     
-    if (data) {
-      const snapX = (yearIdx / (yearlyData.length - 1)) * 1000;
-      line.setAttribute('x1', snapX);
-      line.setAttribute('x2', snapX);
-      
-      tip.classList.remove('hidden');
-      tip.style.left = `${e.clientX + 15}px`;
-      tip.style.top = `${e.clientY - 20}px`;
-      tip.innerHTML = `
-        <span class="font-bold text-emerald-400">Year ${data.yearIdx + 1} (Age ${data.ageP1})</span>
-        <span>Balance: ${fmt.format(data.endCap + data.injection)}</span>
-        <span>Spend: ${fmt.format(data.spend)}</span>
-        <span class="text-slate-400">Super: ${fmt.format(data.superInc)}</span>
-      `;
+    const rect = container.getBoundingClientRect();
+    const paddingX = 16;
+    const xLocal = e.clientX - rect.left;
+    const activeWidth = rect.width - 2 * paddingX;
+    
+    const normalizedX = (xLocal - paddingX) / activeWidth;
+    const clampedX = Math.max(0, Math.min(1, normalizedX));
+    const yearIdx = Math.round(clampedX * (yearlyData.length - 1));
+    
+    // Position pointer line and tooltip based on actual mouse X (clamped to padding)
+    const xClamped = Math.max(paddingX, Math.min(rect.width - paddingX, xLocal));
+    
+    // Performance optimization: only update if index changed or significant movement (optional, but keep index check for content)
+    const lastIdx = container.dataset.lastIdx;
+    container.dataset.lastIdx = yearIdx.toString();
+
+    const d = yearlyData[yearIdx];
+    
+    if (d) {
+      // Update pointer line
+      const pointerLine = document.getElementById('chartPointerLine');
+      if (pointerLine) {
+        pointerLine.setAttribute('x1', xClamped);
+        pointerLine.setAttribute('x2', xClamped);
+      }
+
+      // Update shared tooltip
+      const tooltip = document.getElementById('chartTooltip');
+      if (tooltip) {
+        if (lastIdx !== yearIdx.toString()) {
+          tooltip.innerHTML = `
+            <span class="font-bold text-slate-300">Y${d.yearIdx + 1} (Age ${d.ageP1}/${d.ageP2})</span>
+            <span class="text-rose-300">Spend: ${fmt.format(d.spend)}</span>
+            <span class="text-emerald-300">Super: ${fmt.format(d.superInc)}</span>
+            ${d.injection > 0 ? `<span class="text-blue-300">Injection: ${fmt.format(d.injection)}</span>` : ''}
+            <span class="text-white border-t border-slate-600 mt-1 pt-1 font-semibold">Balance: ${fmt.format(d.endCap + d.injection)}</span>
+          `;
+        }
+        
+        tooltip.classList.remove('hidden');
+        tooltip.classList.add('flex');
+        tooltip.style.left = `${xClamped + 15}px`;
+        tooltip.style.transform = 'translateY(-50%)';
+
+        // Boundary check: ensure tooltip doesn't go above or below the chart container
+        const yOffset = 0;
+        let yPos = e.clientY - rect.top;
+        
+        // Ensure tooltip stays within horizontal bounds
+        const tooltipWidth = 120; // estimate
+        if (xClamped + 15 + tooltipWidth > rect.width) {
+          // Flip to left of cursor if it hits right wall
+          tooltip.style.left = `${xClamped - 15}px`;
+          tooltip.style.transform = 'translate(-100%, -50%)';
+        }
+        
+        tooltip.style.top = `${yPos}px`;
+        tooltip.style.bottom = 'auto';
+      }
     }
   }
 
@@ -1316,46 +1381,37 @@
     document.getElementById('maxBalanceTag').textContent = `Peak: ${fmt.format(maxBal)}`;
 
     const svg = document.getElementById('balanceSvg');
-    const width = 1000;
-    const height = 200;
+    const container = svg.parentElement;
+    const width = container.clientWidth || 1000;
+    const height = container.clientHeight || 256;
 
+    const paddingX = 16;
     const points = yearlyData.map((d, i) => {
-      const x = (i / (yearlyData.length - 1)) * width;
-      const y = height - (((d.endCap) / maxBal) * (height - 20)) - 10;
+      const x = paddingX + (i / (yearlyData.length - 1)) * (width - 2 * paddingX);
+      const y = height - (((d.endCap) / maxBal) * (height - 40)) - 20; // 20px padding top/bottom
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
 
-    const pathD = `M 0,${height} L ${points.join(' L ')} L ${width},${height} Z`;
+    const pathD = `M ${paddingX},${height} L ${points.join(' L ')} L ${width - paddingX},${height} Z`;
     const lineD = `M ${points.join(' L ')}`;
 
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     svg.innerHTML = `
                 <defs>
                     <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.15"/>
                         <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
                     </linearGradient>
                 </defs>
                 <path d="${pathD}" fill="url(#grad)" />
-                <path d="${lineD}" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" />
-                
-                <!-- Interactive Vertical Line -->
+                <path d="${lineD}" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-dasharray="0" />
                 <line id="chartPointerLine" x1="-10" y1="0" x2="-10" y2="${height}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4" />
-                
-                <!-- Invisible overlay for mouse tracking -->
-                <rect width="${width}" height="${height}" fill="transparent" class="cursor-crosshair"
-                      onmousemove="handleChartHover(event)" 
-                      onmouseleave="hideChartHover()" />
+                <rect id="chartHoverOverlay" width="${width}" height="${height}" fill="transparent" class="cursor-crosshair pointer-events-auto" />
             `;
 
-    // Tooltip for SVG Chart
-    let chartTip = document.getElementById('chartTooltip');
-    if (!chartTip) {
-      chartTip = document.createElement('div');
-      chartTip.id = 'chartTooltip';
-      chartTip.className = 'absolute hidden bg-slate-900 text-white text-[10px] p-2 rounded shadow-xl pointer-events-none z-50 flex-col';
-      document.body.appendChild(chartTip);
-    }
+    const overlay = svg.getElementById('chartHoverOverlay');
+    overlay.addEventListener('mousemove', handleChartHover);
+    overlay.addEventListener('mouseleave', hideChartHover);
 
     const flowContainer = document.getElementById('flowChartContainer');
     flowContainer.innerHTML = '';
@@ -1367,17 +1423,10 @@
       const superHeightPct = (d.superInc / maxSpend) * 100;
 
       const col = document.createElement('div');
-      col.className = 'flex-1 h-full flex items-end justify-center gap-[1px] group relative cursor-pointer';
+      col.className = 'flex-1 h-full flex items-end justify-center gap-[1px] group z-20 pointer-events-none select-none';
       col.innerHTML = `
-                    <div class="w-1/2 bg-rose-400 rounded-t-sm group-hover:bg-rose-500 transition-all" style="height: ${spendHeightPct}%;"></div>
-                    <div class="w-1/2 bg-emerald-500 rounded-t-sm group-hover:bg-emerald-600 transition-all" style="height: ${superHeightPct}%;"></div>
-                    <div class="absolute bottom-full mb-2 hidden group-hover:flex flex-col bg-slate-800 text-white text-[10px] p-2 rounded shadow-lg whitespace-nowrap z-30 pointer-events-none">
-                        <span class="font-bold text-slate-300">Y${d.yearIdx + 1} (Age ${d.ageP1})</span>
-                        <span class="text-rose-300">Spend: ${fmt.format(d.spend)}</span>
-                        <span class="text-emerald-300">Super: ${fmt.format(d.superInc)}</span>
-                        ${d.injection > 0 ? `<span class="text-blue-300">Injection: ${fmt.format(d.injection)}</span>` : ''}
-                        <span class="text-white border-t border-slate-600 mt-1 pt-1">Balance: ${fmt.format(d.endCap + d.injection)}</span>
-                    </div>
+                    <div class="w-1/2 bg-rose-400 rounded-t-sm transition-all pointer-events-none" style="height: ${spendHeightPct}%;"></div>
+                    <div class="w-1/2 bg-emerald-500 rounded-t-sm transition-all pointer-events-none" style="height: ${superHeightPct}%;"></div>
                 `;
       flowContainer.appendChild(col);
     });
