@@ -28,6 +28,9 @@ const BASE = {
   p1Inc:              0,
   p2Inc:              0,
   p3Inc:              0,
+  p1Rent:             0,
+  p2Rent:             0,
+  p3Rent:             0,
 };
 
 // Pre-compute shared rates that match the engine's own formulas exactly.
@@ -275,7 +278,36 @@ describe('calculateProjections', () => {
     expect(monthlyData[11].endCap).toBeGreaterThan(monthlyData[0].endCap);
   });
 
-  // ─── 10. Capital injection (FIX #2) ─────────────────────────────────────────
+  // ─── 10. Capital injection (FIX #2 + year-0 fix) ───────────────────────────
+
+  test('year=0 injection is applied to starting balance immediately with no inflation', () => {
+    const amount = 200000;
+    const withInjection    = calculateProjections({ ...BASE, secondaryCapAmount: amount, secondaryCapYear: 0 });
+    const withoutInjection = calculateProjections({ ...BASE, secondaryCapAmount: 0,      secondaryCapYear: 0 });
+
+    // Month 1 startCap should already include the injection (it was added before the loop)
+    expect(withInjection.monthlyData[0].startCap).toBeCloseTo(
+      withoutInjection.monthlyData[0].startCap + amount, 2
+    );
+
+    // No inflation adjustment — the injection is at face value
+    expect(withInjection.monthlyData[0].injection).toBeCloseTo(amount, 2);
+
+    // The extra capital earns returns in Month 1, so endCap difference > amount
+    const endCapDiff = withInjection.monthlyData[0].endCap - withoutInjection.monthlyData[0].endCap;
+    expect(endCapDiff).toBeGreaterThan(amount * 0.9999); // should be amount + tiny gain difference
+  });
+
+  test('year=0 injection does not also fire in any later month', () => {
+    const p = { ...BASE, secondaryCapAmount: 100000, secondaryCapYear: 0 };
+    const { monthlyData } = calculateProjections(p);
+
+    // Only Month 1 (m=0) should carry the injection record
+    expect(monthlyData[0].injection).toBeGreaterThan(0);
+    for (let i = 1; i < monthlyData.length; i++) {
+      expect(monthlyData[i].injection).toBe(0);
+    }
+  });
 
   test('injection occurs only at the last month of the specified year', () => {
     const p = { ...BASE, secondaryCapAmount: 100000, secondaryCapYear: 2 };
@@ -405,5 +437,24 @@ describe('calculateProjections', () => {
     expect(dataWithInc[0].addInc).toBeGreaterThan(0);
     expect(dataWithInc[0].netDraw).toBeLessThan(dataNoInc[0].netDraw);
     expect(dataWithInc[0].endCap).toBeGreaterThan(dataNoInc[0].endCap);
+  });
+
+  // ─── 12. Monthly Rent ──────────────────────────────────────────────────────
+  
+  test('monthly rent increases net draw and decreases end balance', () => {
+    const pWithRent = { ...BASE, p1Rent: 2000 }; // $2000/mo rent in Phase 1
+    const { yearlyData: dataNoRent } = calculateProjections(BASE);
+    const { yearlyData: dataWithRent } = calculateProjections(pWithRent);
+
+    expect(dataWithRent[0].spend).toBeGreaterThan(dataNoRent[0].spend);
+    expect(dataWithRent[0].netDraw).toBeGreaterThan(dataNoRent[0].netDraw);
+    expect(dataWithRent[0].endCap).toBeLessThan(dataNoRent[0].endCap);
+    
+    // Check specific month 0 spend
+    const { monthlyData: monthlyNoRent } = calculateProjections(BASE);
+    const { monthlyData: monthlyWithRent } = calculateProjections(pWithRent);
+    
+    // Difference should be exactly $2000 at m=0 (no inflation yet)
+    expect(monthlyWithRent[0].spend - monthlyNoRent[0].spend).toBeCloseTo(2000, 4);
   });
 });

@@ -332,12 +332,19 @@
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-1 gap-2 mt-2">
+          <div class="grid grid-cols-2 gap-2 mt-2 items-end">
             <div>
-              <label class="text-[10px] text-emerald-700 block" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">Additional Monthly Income (After Tax)</label>
+              <label class="text-[10px] text-emerald-700 block" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">Additional Monthly Income</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
                 <input type="number" id="p1Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Any additional after-tax income during this phase (e.g., part-time work, rental income).">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-emerald-700 block" title="Monthly rent payments if applicable in Phase 1 (Today's $).">Monthly Rent</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-emerald-400 text-xs">$</span>
+                <input type="number" id="p1Rent" value="0" class="w-full pl-5 pr-2 py-1 border border-emerald-300 rounded text-xs" title="Monthly rent payments if applicable in Phase 1 (Today's $).">
               </div>
             </div>
           </div>
@@ -377,12 +384,19 @@
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-1 gap-2 mt-2">
+          <div class="grid grid-cols-2 gap-2 mt-2 items-end">
             <div>
-              <label class="text-[10px] text-blue-700 block" title="Any additional after-tax income during this phase (e.g., rental income).">Additional Monthly Income (After Tax)</label>
+              <label class="text-[10px] text-blue-700 block" title="Any additional after-tax income during this phase (e.g., rental income).">Additional Monthly Income</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
                 <input type="number" id="p2Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Any additional after-tax income during this phase (e.g., rental income).">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-blue-700 block" title="Monthly rent payments if applicable in Phase 2 (Today's $).">Monthly Rent</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-blue-400 text-xs">$</span>
+                <input type="number" id="p2Rent" value="0" class="w-full pl-5 pr-2 py-1 border border-blue-300 rounded text-xs" title="Monthly rent payments if applicable in Phase 2 (Today's $).">
               </div>
             </div>
           </div>
@@ -419,12 +433,19 @@
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-1 gap-2 mt-2">
+          <div class="grid grid-cols-2 gap-2 mt-2 items-end">
             <div>
-              <label class="text-[10px] text-slate-500 block" title="Any additional after-tax income during this phase.">Additional Monthly Income (After Tax)</label>
+              <label class="text-[10px] text-slate-500 block" title="Any additional after-tax income during this phase.">Additional Monthly Income</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
                 <input type="number" id="p3Inc" value="0" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Any additional after-tax income during this phase.">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block" title="Monthly rent payments if applicable in Phase 3 (Today's $).">Monthly Rent</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
+                <input type="number" id="p3Rent" value="0" class="w-full pl-5 pr-2 py-1 border border-slate-300 rounded text-xs" title="Monthly rent payments if applicable in Phase 3 (Today's $).">
               </div>
             </div>
           </div>
@@ -549,10 +570,13 @@
     p2Years: 10,
     p1Spend: 6000,
     p1Inc: 0,
+    p1Rent: 0,
     p2Spend: 4000,
     p2Inc: 0,
+    p2Rent: 0,
     p3Spend: 3000,
     p3Inc: 0,
+    p3Rent: 0,
     p1Holiday: 10000,
     p1Emergency: 5000,
     p2Holiday: 5000,
@@ -567,12 +591,13 @@
   let currentScenarioId = null; // If we are editing an existing scenario
 
   const fmt = new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 });
+  const fmtNoSign = new Intl.NumberFormat('en-NZ', { maximumFractionDigits: 0 });
 
   const inputIds = [
     'startBalance', 'returnRate', 'taxRate', 'inflationRate',
     'ageP1', 'ageP2', 'superAgeP1', 'superAgeP2',
-    'annualSuper', 'p1Years', 'p1Spend', 'p1Inc', 'p2Years',
-    'p2Spend', 'p2Inc', 'p3Spend', 'p3Inc',
+    'annualSuper', 'p1Years', 'p1Spend', 'p1Inc', 'p1Rent', 'p2Years',
+    'p2Spend', 'p2Inc', 'p2Rent', 'p3Spend', 'p3Inc', 'p3Rent',
     'p1Holiday', 'p1Emergency', 'p2Holiday', 'p2Emergency', 'p3Holiday', 'p3Emergency',
     'secondaryCapAmount', 'secondaryCapYear'
   ];
@@ -688,8 +713,11 @@
       p3Holiday: getVal('p3Holiday', DEFAULT_PARAMS.p3Holiday, state),
       p3Emergency: getVal('p3Emergency', DEFAULT_PARAMS.p3Emergency, state),
       p1Inc: getVal('p1Inc', DEFAULT_PARAMS.p1Inc, state),
+      p1Rent: getVal('p1Rent', DEFAULT_PARAMS.p1Rent, state),
       p2Inc: getVal('p2Inc', DEFAULT_PARAMS.p2Inc, state),
-      p3Inc: getVal('p3Inc', DEFAULT_PARAMS.p3Inc, state)
+      p2Rent: getVal('p2Rent', DEFAULT_PARAMS.p2Rent, state),
+      p3Inc: getVal('p3Inc', DEFAULT_PARAMS.p3Inc, state),
+      p3Rent: getVal('p3Rent', DEFAULT_PARAMS.p3Rent, state)
     };
   }
 
@@ -1194,10 +1222,11 @@
                         <th class="py-3 px-3">Year Index</th>
                         <th class="py-3 px-3">Ages</th>
                         <th class="py-3 px-3 text-right">Start Capital</th>
+                        <th class="py-3 px-3 text-right">Rent</th>
                         <th class="py-3 px-3 text-right">Spend</th>
                         <th class="py-3 px-3 text-right">NZ Super</th>
                         <th class="py-3 px-3 text-right">Other Inc (Net)</th>
-                        <th class="py-3 px-3 text-right">Net Draw</th>
+                        <th class="py-3 px-3 text-right" title="Total amount withdrawn from capital (Core Spend + Rent - Income)">Net Draw</th>
                         <th class="py-3 px-3 text-right">Gross Growth</th>
                         <th class="py-3 px-3 text-right text-amber-600">Tax Drag</th>
                         <th class="py-3 px-3 text-right">Net Gain</th>
@@ -1223,22 +1252,27 @@
         const inflationMult = row.spend / (row.spend / Math.pow(1 + p.inflationRate, row.yearIdx)); 
         
         const inflationMultYearly = Math.pow(1 + p.inflationRate, row.yearIdx);
-        let baseMonthly = p.p3Spend;
+        let baseMonthlyRent = p.p3Rent || 0;
+        let baseMonthlySpend = p.p3Spend;
         let yearlyExtra = p.p3Holiday + p.p3Emergency;
         if (row.yearIdx < p.p1Years) {
-          baseMonthly = p.p1Spend;
+          baseMonthlySpend = p.p1Spend;
+          baseMonthlyRent = p.p1Rent || 0;
           yearlyExtra = p.p1Holiday + p.p1Emergency;
         } else if (row.yearIdx < (p.p1Years + p.p2Years)) {
-          baseMonthly = p.p2Spend;
+          baseMonthlySpend = p.p2Spend;
+          baseMonthlyRent = p.p2Rent || 0;
           yearlyExtra = p.p2Holiday + p.p2Emergency;
         }
-        
-        const spendDetail = `(${fmt.format(baseMonthly)} base + ${fmt.format(yearlyExtra / 12)} extra) × 12 months × ${inflationMultYearly.toFixed(2)} inflation = ${fmt.format(row.spend)}`;
+
+        const rentDetail = `Monthly base rent ${fmt.format(baseMonthlyRent)} × 12 months × ${inflationMultYearly.toFixed(2)} inflation = ${fmt.format(row.rent)}`;
+        const spendDetail = `(${fmt.format(baseMonthlySpend)} base spend + ${fmt.format(yearlyExtra / 12)} extra) × 12 months × ${inflationMultYearly.toFixed(2)} inflation = ${fmt.format(row.spend - row.rent)}`;
+        const totalSpendDetail = `Rent ${fmt.format(row.rent)} + Core Spend ${fmt.format(row.spend - row.rent)} = ${fmt.format(row.spend)}`;
         const superDetail = `(${fmt.format(p.annualSuper)} base × ${((row.superInc / (p.annualSuper * inflationMultYearly)) * 100).toFixed(0)}% eligibility) × ${inflationMultYearly.toFixed(2)} inflation = ${fmt.format(row.superInc)}`;
         const addIncDetail = `Additional income (after tax) × ${inflationMultYearly.toFixed(2)} inflation = ${fmt.format(row.addInc)}`;
         const taxDetail = `Estimated portfolio tax (${(p.taxRate * 100).toFixed(1)}% annual drag). Calculated monthly based on remaining capital during the year. Total for year: ${fmt.format(row.taxPaid)}`;
 
-        const netDrawDetail = `${fmt.format(row.spend)} (Spend) - ${fmt.format(row.superInc)} (Super) - ${fmt.format(row.addInc)} (Other Net) = ${fmt.format(row.netDraw)}`;
+        const netDrawDetail = `(Rent ${fmt.format(row.rent)} + Core Spend ${fmt.format(row.spend - row.rent)}) - ${fmt.format(row.superInc)} (Super) - ${fmt.format(row.addInc)} (Other Net) = ${fmt.format(row.netDraw)}`;
         const netGainDetail = `${fmt.format(row.grossGain)} (Gross) - ${fmt.format(row.taxPaid)} (Tax) = ${fmt.format(row.netGain)}`;
         let endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) = ${fmt.format(row.endCap)}`;
         if (row.injection > 0) {
@@ -1249,7 +1283,8 @@
                         <td class="py-2.5 px-3 font-semibold text-slate-700">Y${row.yearIdx + 1}</td>
                         <td class="py-2.5 px-3 text-slate-500">${row.ageP1}/${row.ageP2}</td>
                         <td class="py-2.5 px-3 text-right" title="Balance at the beginning of the year: ${fmt.format(row.startCap)}">${fmt.format(row.startCap)}</td>
-                        <td class="py-2.5 px-3 text-right text-rose-600" title="Spend: ${spendDetail}">${fmt.format(row.spend)}</td>
+                        <td class="py-2.5 px-3 text-right text-rose-500" title="Rent: ${rentDetail}">${fmt.format(row.rent)}</td>
+                        <td class="py-2.5 px-3 text-right text-rose-600" title="Core Spend: ${spendDetail}. Total including rent: ${totalSpendDetail}">${fmt.format(row.spend - row.rent)}</td>
                         <td class="py-2.5 px-3 text-right text-emerald-600" title="NZ Super: ${superDetail}">${fmt.format(row.superInc)}</td>
                         <td class="py-2.5 px-3 text-right text-blue-600" title="Other Income (After Tax): ${addIncDetail}">${fmt.format(row.addInc)}</td>
                         <td class="py-2.5 px-3 text-right" title="Net Draw = ${netDrawDetail}">${fmt.format(row.netDraw)}</td>
@@ -1266,10 +1301,11 @@
                         <th class="py-3 px-3">Month Index</th>
                         <th class="py-3 px-3">Ages</th>
                         <th class="py-3 px-3 text-right">Start Cap</th>
+                        <th class="py-3 px-3 text-right">Rent</th>
                         <th class="py-3 px-3 text-right">Spend</th>
                         <th class="py-3 px-3 text-right">Super</th>
                         <th class="py-3 px-3 text-right">Other (Net)</th>
-                        <th class="py-3 px-3 text-right">Net Draw</th>
+                        <th class="py-3 px-3 text-right" title="Total amount withdrawn from capital (Core Spend + Rent - Income)">Net Draw</th>
                         <th class="py-3 px-3 text-right">Gross Growth</th>
                         <th class="py-3 px-3 text-right text-amber-600">Tax Drag</th>
                         <th class="py-3 px-3 text-right">Net Gain</th>
@@ -1298,17 +1334,22 @@
         const inflationMultMonthly = Math.pow(1 + (Math.pow(1 + p.inflationRate, 1/12) - 1), mIdx);
         const monthInYearIdx = (mIdx % 12) + 1;
 
-        let baseMonthly = p.p3Spend;
+        let baseMonthlyRent = p.p3Rent || 0;
+        let baseMonthlySpend = p.p3Spend;
         let yearlyExtra = p.p3Holiday + p.p3Emergency;
         if (yearIdx < p.p1Years) {
-          baseMonthly = p.p1Spend;
+          baseMonthlySpend = p.p1Spend;
+          baseMonthlyRent = p.p1Rent || 0;
           yearlyExtra = p.p1Holiday + p.p1Emergency;
         } else if (yearIdx < (p.p1Years + p.p2Years)) {
-          baseMonthly = p.p2Spend;
+          baseMonthlySpend = p.p2Spend;
+          baseMonthlyRent = p.p2Rent || 0;
           yearlyExtra = p.p2Holiday + p.p2Emergency;
         }
 
-        const spendDetail = `(${fmt.format(baseMonthly)} base + ${fmt.format(yearlyExtra / 12)} extra) × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.spend)}`;
+        const rentDetail = `Base rent ${fmt.format(baseMonthlyRent)} × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.rent)}`;
+        const spendDetail = `(${fmt.format(baseMonthlySpend)} base spend + ${fmt.format(yearlyExtra / 12)} extra) × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.spend - row.rent)}`;
+        const totalSpendDetail = `Rent ${fmt.format(row.rent)} + Core Spend ${fmt.format(row.spend - row.rent)} = ${fmt.format(row.spend)}`;
         const superDetail = `(${fmt.format(p.annualSuper / 12)} base × ${((row.superInc / ((p.annualSuper / 12) * inflationMultMonthly)) * 100).toFixed(0)}% eligibility) × ${inflationMultMonthly.toFixed(2)} inflation = ${fmt.format(row.superInc)}`;
         const taxableBase = Math.max(0, row.startCap - (row.netDraw / 2));
         const netAnnualRate = Math.max(0, p.grossReturnRate - p.taxRate);
@@ -1317,7 +1358,7 @@
         const effectiveMonthlyTaxRate = monthlyGrossRate - monthlyNetRate;
         const taxDetail = `Estimated portfolio tax: (${fmt.format(taxableBase)} taxable base × ${(effectiveMonthlyTaxRate * 100).toFixed(3)}% effective monthly tax drag) = ${fmt.format(row.taxPaid)}`;
 
-        const netDrawDetail = `${fmt.format(row.spend)} (Spend) - ${fmt.format(row.superInc)} (Super) - ${fmt.format(row.addInc)} (Other Net) = ${fmt.format(row.netDraw)}`;
+        const netDrawDetail = `(Rent ${fmt.format(row.rent)} + Core Spend ${fmt.format(row.spend - row.rent)}) - ${fmt.format(row.superInc)} (Super) - ${fmt.format(row.addInc)} (Other Net) = ${fmt.format(row.netDraw)}`;
         const netGainDetail = `${fmt.format(row.grossGain)} (Gross) - ${fmt.format(row.taxPaid)} (Tax) = ${fmt.format(row.netGain)}`;
         let endCapDetail = `${fmt.format(row.startCap)} (Start) - ${fmt.format(row.netDraw)} (Draw) + ${fmt.format(row.netGain)} (Gain) = ${fmt.format(row.endCap)}`;
         if (row.injection > 0) {
@@ -1328,7 +1369,8 @@
                         <td class="py-2 px-3 font-semibold text-slate-700">Y${yearIdx + 1} M${monthInYearIdx}</td>
                         <td class="py-2 px-3 text-slate-500">${row.ageP1}/${row.ageP2}</td>
                         <td class="py-2 px-3 text-right" title="Balance at the beginning of the month: ${fmt.format(row.startCap)}">${fmt.format(row.startCap)}</td>
-                        <td class="py-2 px-3 text-right text-rose-600" title="Spend: ${spendDetail}">${fmt.format(row.spend)}</td>
+                        <td class="py-2 px-3 text-right text-rose-500" title="Rent: ${rentDetail}">${fmt.format(row.rent)}</td>
+                        <td class="py-2 px-3 text-right text-rose-600" title="Core Spend: ${spendDetail}. Total including rent: ${totalSpendDetail}">${fmt.format(row.spend - row.rent)}</td>
                         <td class="py-2 px-3 text-right text-emerald-600" title="NZ Super: ${superDetail}">${fmt.format(row.superInc)}</td>
                         <td class="py-2 px-3 text-right text-blue-600" title="After Tax">${fmt.format(row.addInc)}</td>
                         <td class="py-2 px-3 text-right" title="Net Draw = ${netDrawDetail}">${fmt.format(row.netDraw)}</td>
@@ -1401,7 +1443,8 @@
         if (lastIdx !== yearIdx.toString()) {
           tooltip.innerHTML = `
             <span class="font-bold text-slate-300">Y${d.yearIdx + 1} (Age ${d.ageP1}/${d.ageP2})</span>
-            <span class="text-rose-300">Spend: ${fmt.format(d.spend)}</span>
+            <span class="text-rose-300">Core Spend: ${fmt.format(d.spend - d.rent)}</span>
+            <span class="text-rose-400 font-medium">Rent: ${fmt.format(d.rent)}</span>
             <span class="text-emerald-300">Super: ${fmt.format(d.superInc)}</span>
             ${d.addInc > 0 ? `<span class="text-blue-300">Other Inc (Net): ${fmt.format(d.addInc)}</span>` : ''}
             ${d.injection > 0 ? `<span class="text-blue-300">Injection: ${fmt.format(d.injection)}</span>` : ''}
@@ -1625,7 +1668,7 @@
 
 <footer class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 border-t border-slate-200">
   <p class="text-center text-[10px] text-slate-400">
-    Last updated: 2026-07-21 12:23 (Commit: e60a57c)
+    Last updated: 2026-07-21 13:07 (Commit: 86ce3df)
   </p>
 </footer>
 
