@@ -19,7 +19,7 @@
 
 <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
   <div class="max-w-[1440px] mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-    <div class="flex items-center space-x-3">
+    <a href="./" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
       <div class="p-2 bg-emerald-500 text-slate-950 rounded-lg font-bold">NZ</div>
       <div>
         <h1 class="text-xl font-bold tracking-tight">Retirement Planner</h1>
@@ -31,7 +31,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </a>
     <div class="flex items-center gap-2 w-full sm:w-auto">
         <button id="exportPdf" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -577,7 +577,11 @@
     'secondaryCapAmount', 'secondaryCapYear'
   ];
 
-  function getVal(id, fallback = 0) {
+  function getVal(id, fallback = 0, state = null) {
+    if (state && state[id] !== undefined) {
+      const v = parseFloat(state[id]);
+      return isNaN(v) ? fallback : v;
+    }
     const el = document.getElementById(id);
     if (!el) return fallback;
     const v = parseFloat(el.value);
@@ -659,33 +663,33 @@
     }
   }
 
-  function getInputs() {
+  function getInputs(state = null) {
     return {
-      startBalance: getVal('startBalance', DEFAULT_PARAMS.startBalance),
-      grossReturnRate: getVal('returnRate', DEFAULT_PARAMS.returnRate) / 100,
-      taxRate: getVal('taxRate', DEFAULT_PARAMS.taxRate) / 100,
-      inflationRate: getVal('inflationRate', DEFAULT_PARAMS.inflationRate) / 100,
-      ageP1: getVal('ageP1', DEFAULT_PARAMS.ageP1),
-      ageP2: getVal('ageP2', DEFAULT_PARAMS.ageP2),
-      superAgeP1: getVal('superAgeP1', DEFAULT_PARAMS.superAgeP1),
-      superAgeP2: getVal('superAgeP2', DEFAULT_PARAMS.superAgeP2),
-      annualSuper: getVal('annualSuper', DEFAULT_PARAMS.annualSuper),
-      secondaryCapAmount: getVal('secondaryCapAmount', DEFAULT_PARAMS.secondaryCapAmount),
-      secondaryCapYear: getVal('secondaryCapYear', DEFAULT_PARAMS.secondaryCapYear),
-      p1Years: getVal('p1Years', DEFAULT_PARAMS.p1Years),
-      p2Years: getVal('p2Years', DEFAULT_PARAMS.p2Years),
-      p1Spend: getVal('p1Spend', DEFAULT_PARAMS.p1Spend),
-      p2Spend: getVal('p2Spend', DEFAULT_PARAMS.p2Spend),
-      p3Spend: getVal('p3Spend', DEFAULT_PARAMS.p3Spend),
-      p1Holiday: getVal('p1Holiday', DEFAULT_PARAMS.p1Holiday),
-      p1Emergency: getVal('p1Emergency', DEFAULT_PARAMS.p1Emergency),
-      p2Holiday: getVal('p2Holiday', DEFAULT_PARAMS.p2Holiday),
-      p2Emergency: getVal('p2Emergency', DEFAULT_PARAMS.p2Emergency),
-      p3Holiday: getVal('p3Holiday', DEFAULT_PARAMS.p3Holiday),
-      p3Emergency: getVal('p3Emergency', DEFAULT_PARAMS.p3Emergency),
-      p1Inc: getVal('p1Inc', DEFAULT_PARAMS.p1Inc),
-      p2Inc: getVal('p2Inc', DEFAULT_PARAMS.p2Inc),
-      p3Inc: getVal('p3Inc', DEFAULT_PARAMS.p3Inc)
+      startBalance: getVal('startBalance', DEFAULT_PARAMS.startBalance, state),
+      grossReturnRate: getVal('returnRate', DEFAULT_PARAMS.returnRate, state) / 100,
+      taxRate: getVal('taxRate', DEFAULT_PARAMS.taxRate, state) / 100,
+      inflationRate: getVal('inflationRate', DEFAULT_PARAMS.inflationRate, state) / 100,
+      ageP1: getVal('ageP1', DEFAULT_PARAMS.ageP1, state),
+      ageP2: getVal('ageP2', DEFAULT_PARAMS.ageP2, state),
+      superAgeP1: getVal('superAgeP1', DEFAULT_PARAMS.superAgeP1, state),
+      superAgeP2: getVal('superAgeP2', DEFAULT_PARAMS.superAgeP2, state),
+      annualSuper: getVal('annualSuper', DEFAULT_PARAMS.annualSuper, state),
+      secondaryCapAmount: getVal('secondaryCapAmount', DEFAULT_PARAMS.secondaryCapAmount, state),
+      secondaryCapYear: getVal('secondaryCapYear', DEFAULT_PARAMS.secondaryCapYear, state),
+      p1Years: getVal('p1Years', DEFAULT_PARAMS.p1Years, state),
+      p2Years: getVal('p2Years', DEFAULT_PARAMS.p2Years, state),
+      p1Spend: getVal('p1Spend', DEFAULT_PARAMS.p1Spend, state),
+      p2Spend: getVal('p2Spend', DEFAULT_PARAMS.p2Spend, state),
+      p3Spend: getVal('p3Spend', DEFAULT_PARAMS.p3Spend, state),
+      p1Holiday: getVal('p1Holiday', DEFAULT_PARAMS.p1Holiday, state),
+      p1Emergency: getVal('p1Emergency', DEFAULT_PARAMS.p1Emergency, state),
+      p2Holiday: getVal('p2Holiday', DEFAULT_PARAMS.p2Holiday, state),
+      p2Emergency: getVal('p2Emergency', DEFAULT_PARAMS.p2Emergency, state),
+      p3Holiday: getVal('p3Holiday', DEFAULT_PARAMS.p3Holiday, state),
+      p3Emergency: getVal('p3Emergency', DEFAULT_PARAMS.p3Emergency, state),
+      p1Inc: getVal('p1Inc', DEFAULT_PARAMS.p1Inc, state),
+      p2Inc: getVal('p2Inc', DEFAULT_PARAMS.p2Inc, state),
+      p3Inc: getVal('p3Inc', DEFAULT_PARAMS.p3Inc, state)
     };
   }
 
@@ -752,7 +756,10 @@
       const row = findAgeBalanceRow(age);
       const valEl = document.getElementById(`statAge${age}`);
       const subEl = document.getElementById(`statAge${age}Sub`);
-      if (valEl) valEl.textContent = row ? fmt.format(row.endCap) : 'N/A';
+      if (valEl) {
+        const balance = row ? (row.endCap || 0) : 0;
+        valEl.textContent = row ? fmt.format(balance) : 'N/A';
+      }
       if (subEl) subEl.textContent = row ? `P1 Age ${age} / P2 Age ${row.ageP2}` : `P1 Age ${age} benchmark`;
     };
 
@@ -848,13 +855,13 @@
 
   // --- Scenario Logic ---
 
-  async function getScenarioSummary() {
-    const p = getInputs();
+  function calculateSummary(p) {
     const { yearsDepleted, yearlyData } = calculateProjections(p);
     
     const findAgeBalance = (targetAge) => {
       const row = yearlyData.find(d => d.ageP1 === targetAge);
-      return row ? fmt.format(row.endCap + row.injection) : 'N/A';
+      if (!row) return 'N/A';
+      return fmt.format(row.endCap || 0);
     };
 
     return {
@@ -864,6 +871,11 @@
       balance80: findAgeBalance(80),
       balance85: findAgeBalance(85)
     };
+  }
+
+  function getScenarioSummary(state = null) {
+    const p = getInputs(state);
+    return calculateSummary(p);
   }
 
   async function saveScenario() {
@@ -888,7 +900,7 @@
       if (el) state[id] = el.value;
     });
 
-    const summary = await getScenarioSummary();
+    const summary = getScenarioSummary();
     const updatedAt = new Date().toISOString();
 
     try {
@@ -1044,6 +1056,9 @@
     }
 
     listEl.innerHTML = scenarios.map(s => {
+      // Re-calculate summary on the fly using the current calculator logic
+      // to ensure consistency between the main dashboard and the saved list.
+      const summary = getScenarioSummary(s.state);
       const isActive = s.id === currentScenarioId;
       return `
       <div class="bg-slate-50 border ${isActive ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-slate-200'} rounded-xl p-4 hover:border-emerald-500 transition-colors group relative">
@@ -1068,19 +1083,19 @@
         <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs border-t border-slate-200 pt-3 mt-3">
           <div class="flex justify-between">
             <span class="text-slate-500">Longevity:</span>
-            <span class="font-bold ${s.summary.depletedAge ? 'text-rose-600' : 'text-emerald-600'}">${s.summary.longevity}</span>
+            <span class="font-bold ${summary.depletedAge ? 'text-rose-600' : 'text-emerald-600'}">${summary.longevity}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Age 70:</span>
-            <span class="font-semibold text-slate-700">${s.summary.balance70}</span>
+            <span class="font-semibold text-slate-700">${summary.balance70}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Age 80:</span>
-            <span class="font-semibold text-slate-700">${s.summary.balance80}</span>
+            <span class="font-semibold text-slate-700">${summary.balance80}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Age 85:</span>
-            <span class="font-semibold text-slate-700">${s.summary.balance85}</span>
+            <span class="font-semibold text-slate-700">${summary.balance85}</span>
           </div>
         </div>
       </div>
@@ -1610,7 +1625,7 @@
 
 <footer class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 border-t border-slate-200">
   <p class="text-center text-[10px] text-slate-400">
-    Last updated: 2026-07-21 12:22 (Commit: e60a57c)
+    Last updated: 2026-07-21 12:23 (Commit: e60a57c)
   </p>
 </footer>
 
