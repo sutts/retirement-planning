@@ -631,7 +631,7 @@
           </div>
         </div>
 
-        <div class="overflow-x-auto max-h-[500px]">
+        <div id="ledgerTableContainer" class="overflow-x-auto max-h-[500px]">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 font-semibold text-slate-600 z-10" id="tableHeader">
             </thead>
@@ -1968,18 +1968,50 @@
     const toggleChartBtn = document.getElementById('toggleChart');
     const chartVisibilityText = document.getElementById('chartVisibilityText');
     const chartsSection = document.getElementById('chartsSection');
+    const ledgerTableContainer = document.getElementById('ledgerTableContainer');
+    const projectionLedgerCard = document.getElementById('projectionLedgerCard');
+    const inputsSection = document.getElementById('inputsSection');
+
+    function updateTableHeight() {
+      const isHorizontal = document.body.classList.contains('layout-horizontal');
+      const isChartHidden = chartsSection.classList.contains('hidden');
+
+      if (isChartHidden && !isHorizontal) {
+        const inputsHeight = inputsSection.offsetHeight;
+        if (inputsHeight > 0) {
+          projectionLedgerCard.style.height = `${inputsHeight}px`;
+          projectionLedgerCard.classList.add('flex', 'flex-col');
+          ledgerTableContainer.classList.remove('max-h-[500px]');
+          ledgerTableContainer.classList.add('flex-grow', 'overflow-y-auto');
+          ledgerTableContainer.style.maxHeight = 'none';
+        }
+      } else {
+        projectionLedgerCard.style.height = '';
+        projectionLedgerCard.classList.remove('flex', 'flex-col');
+        ledgerTableContainer.classList.remove('flex-grow', 'overflow-y-auto');
+        ledgerTableContainer.classList.add('max-h-[500px]');
+        ledgerTableContainer.style.maxHeight = '';
+      }
+    }
 
     toggleViewBtn.addEventListener('click', () => {
       const isHorizontal = document.body.classList.toggle('layout-horizontal');
       viewModeText.textContent = isHorizontal ? 'Vertical View' : 'Horizontal View';
       // Trigger resize for chart if visible
       window.dispatchEvent(new Event('resize'));
+      updateTableHeight();
     });
 
     toggleChartBtn.addEventListener('click', () => {
       const isHidden = chartsSection.classList.toggle('hidden');
       chartVisibilityText.textContent = isHidden ? 'Show Chart' : 'Hide Chart';
+      updateTableHeight();
     });
+
+    window.addEventListener('resize', updateTableHeight);
+
+    // Initialize table height based on current layout & visibility state
+    updateTableHeight();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get('view') === 'scenarios') {
@@ -2010,7 +2042,7 @@
 
 <footer class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 border-t border-slate-200">
   <p class="text-center text-[10px] text-slate-400">
-    Last updated: 2026-07-21 13:28 (Commit: 0a7ddd0)
+    Last updated: 2026-07-21 15:33 (Commit: 1d1ff12)
   </p>
 </footer>
 
