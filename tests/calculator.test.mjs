@@ -25,6 +25,9 @@ const BASE = {
   p2Emergency:        5000,
   p3Holiday:          2000,
   p3Emergency:        5000,
+  p1Inc:              0,
+  p2Inc:              0,
+  p3Inc:              0,
 };
 
 // Pre-compute shared rates that match the engine's own formulas exactly.
@@ -388,4 +391,19 @@ describe('calculateProjections', () => {
     }
   });
 
+  // ─── 11. Additional Income ──────────────────────────────────────────────────
+  // Note: Additional income is treated as AFTER TAX (net) income in the engine.
+
+  test('additional income (after tax) reduces net draw and increases end balance', () => {
+    const pWithIncome = { ...BASE, p1Inc: 1000 }; // $1000/mo additional net income in Phase 1
+    const { yearlyData: dataNoInc } = calculateProjections(BASE);
+    const { yearlyData: dataWithInc } = calculateProjections(pWithIncome);
+
+    // In Year 1, additional income is $1000 * 12 = $12,000 (pre-inflation adjustment per month)
+    // Actually it's adjusted by inflation monthly.
+    
+    expect(dataWithInc[0].addInc).toBeGreaterThan(0);
+    expect(dataWithInc[0].netDraw).toBeLessThan(dataNoInc[0].netDraw);
+    expect(dataWithInc[0].endCap).toBeGreaterThan(dataNoInc[0].endCap);
+  });
 });
