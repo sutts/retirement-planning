@@ -9,6 +9,15 @@
   <!-- NOTE: Tailwind CDN is used for rapid prototyping. For production, consider using a build-tool like Tailwind CLI or PostCSS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XKZ9FRGHM6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-XKZ9FRGHM6');
+  </script>
   <style>
       @media print {
           .no-print { display: none !important; }
@@ -161,10 +170,6 @@
         <h1 class="text-xl font-bold tracking-tight">Retirement Planner</h1>
         <div class="flex items-center gap-2">
           <p class="text-xs text-slate-400">Interactive Capital & Cashflow Modeling</p>
-          <div id="activeScenarioLabel" class="hidden flex items-center gap-1.5 px-2 py-0.5 bg-emerald-900/50 border border-emerald-700/50 rounded-full">
-            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-            <span id="activeScenarioName" class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider"></span>
-          </div>
         </div>
       </div>
     </a>
@@ -189,17 +194,28 @@
           </button>
         </div>
     </div>
-    <div class="flex items-center gap-2 w-full sm:w-auto">
-        <button id="toggleView" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition" title="Change layout view">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-          <span id="viewModeText">Horizontal View</span>
+    <div class="relative inline-block text-left" id="viewDropdownContainer">
+        <button id="viewBtn" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+          <span>View Options</span>
+          <svg class="w-4 h-4 ml-1 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
         </button>
-        <button id="toggleChart" class="inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition" title="Toggle chart visibility">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          <span id="chartVisibilityText">Hide Chart</span>
-        </button>
+        <div id="viewDropdownMenu" class="hidden absolute right-0 mt-2 w-48 rounded-lg shadow-xl bg-white border border-slate-200 ring-1 ring-black ring-opacity-5 z-[100] divide-y divide-slate-100 overflow-hidden">
+          <button id="toggleView" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition" title="Change layout view">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            <span id="viewModeText">Horizontal View</span>
+          </button>
+          <button id="toggleChart" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition" title="Toggle chart visibility">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span id="chartVisibilityText">Hide Chart</span>
+          </button>
+        </div>
     </div>
     <div class="flex items-center gap-2 w-full sm:w-auto">
+        <div id="activeScenarioLabel" class="hidden flex items-center gap-1.5 px-3 py-2 bg-emerald-900/30 border border-emerald-700/40 rounded-lg select-none">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+          <span id="activeScenarioName" class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider"></span>
+        </div>
         <button id="newScenario" class="hidden sm:inline-flex items-center justify-center space-x-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition" title="Start new calculation">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
           <span class="hidden lg:inline">New</span>
@@ -1939,15 +1955,30 @@
     // Export dropdown toggle listener
     const exportBtn = document.getElementById('exportBtn');
     const exportDropdownMenu = document.getElementById('exportDropdownMenu');
+    // View options dropdown toggle listener
+    const viewBtn = document.getElementById('viewBtn');
+    const viewDropdownMenu = document.getElementById('viewDropdownMenu');
+
     if (exportBtn && exportDropdownMenu) {
       exportBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         exportDropdownMenu.classList.toggle('hidden');
-      });
-      document.addEventListener('click', () => {
-        exportDropdownMenu.classList.add('hidden');
+        if (viewDropdownMenu) viewDropdownMenu.classList.add('hidden'); // Close other dropdown
       });
     }
+
+    if (viewBtn && viewDropdownMenu) {
+      viewBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        viewDropdownMenu.classList.toggle('hidden');
+        if (exportDropdownMenu) exportDropdownMenu.classList.add('hidden'); // Close other dropdown
+      });
+    }
+
+    document.addEventListener('click', () => {
+      if (exportDropdownMenu) exportDropdownMenu.classList.add('hidden');
+      if (viewDropdownMenu) viewDropdownMenu.classList.add('hidden');
+    });
 
     document.getElementById('saveScenario').addEventListener('click', saveScenario);
     document.getElementById('downloadAllScenarios').addEventListener('click', downloadAllScenarios);
