@@ -457,4 +457,28 @@ describe('calculateProjections', () => {
     // Difference should be exactly $2000 at m=0 (no inflation yet)
     expect(monthlyWithRent[0].spend - monthlyNoRent[0].spend).toBeCloseTo(2000, 4);
   });
+
+  // ─── 13. PIR PIE Tax ────────────────────────────────────────────────────────
+  
+  test('PIR rate calculates correct tax drag based on balanced allocation formula', () => {
+    const pWithPir = { ...BASE, pirRate: '28', grossReturnRate: 0.04 }; 
+    const { effectiveTaxRate } = calculateProjections(pWithPir);
+    
+    // Balanced allocation: 50% shares (FDR 5%), 50% cash (FDR Gross return)
+    // Taxable Yield = (50% * 0.04) + (50% * 0.05) = 0.02 + 0.025 = 0.045
+    // Tax Drag = 0.045 * 0.28 = 0.0126 (1.26%)
+    expect(effectiveTaxRate).toBeCloseTo(0.0126, 6);
+  });
+
+  test('PIR rate of custom fallback uses custom taxRate', () => {
+    const pCustom = { ...BASE, pirRate: 'custom', taxRate: 0.008 };
+    const { effectiveTaxRate } = calculateProjections(pCustom);
+    expect(effectiveTaxRate).toBeCloseTo(0.008, 6);
+  });
+
+  test('PIR rate of 0% results in zero tax drag', () => {
+    const pZero = { ...BASE, pirRate: '0' };
+    const { effectiveTaxRate } = calculateProjections(pZero);
+    expect(effectiveTaxRate).toBe(0);
+  });
 });
