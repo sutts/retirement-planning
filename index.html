@@ -274,6 +274,10 @@
             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             <span id="viewModeText">Horizontal View</span>
           </button>
+          <button id="toggleScenariosSidebar" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition" title="Toggle scenario quick-load panel on the left">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+            <span id="scenariosSidebarText">Show Scenarios Panel</span>
+          </button>
           <button id="toggleChart" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition" title="Toggle chart visibility">
             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
             <span id="chartVisibilityText">Hide Chart</span>
@@ -395,6 +399,23 @@
     </div>
   </div>
 </div>
+
+<!-- Floating Left Scenarios Panel (Compact Thinish Drawer) -->
+<aside id="scenariosSidebar" class="hidden fixed left-2 sm:left-4 top-24 z-50 w-52 bg-white/95 backdrop-blur-md p-3 rounded-xl border border-slate-200/80 shadow-2xl space-y-2.5 transition-all duration-300">
+  <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+    <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+      <span>Saved Scenarios</span>
+    </h2>
+    <button id="closeScenariosSidebarBtn" class="text-slate-400 hover:text-slate-600 transition p-0.5" title="Hide Scenarios Panel">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+  </div>
+
+  <div id="sidebarScenariosList" class="space-y-2 max-h-[calc(100vh-160px)] overflow-y-auto pr-0.5">
+    <!-- Rendered scenario quick-cards will be injected here -->
+  </div>
+</aside>
 
 <main class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
 
@@ -1313,7 +1334,36 @@
 
   function calculateSummary(p) {
     const { yearsDepleted, yearlyData } = calculateProjections(p);
-    
+
+    // Compute stress test security score (0-100) across 9 macro variations
+    const curReturn = p.grossReturnRate * 100;
+    const curInflation = p.inflationRate * 100;
+    const returnVariations = [curReturn - 1.5, curReturn, curReturn + 1.5];
+    const inflationVariations = [curInflation + 1.0, curInflation, curInflation - 1.0];
+
+    let totalLongevity = 0;
+    for (let inf of inflationVariations) {
+      for (let ret of returnVariations) {
+        const testP = { ...p, grossReturnRate: ret / 100, inflationRate: inf / 100 };
+        const res = calculateProjections(testP);
+        totalLongevity += (res.yearsDepleted !== null ? res.yearsDepleted : 50);
+      }
+    }
+    const securityScore = Math.round((totalLongevity / 450) * 100);
+
+    let scoreColor = '#10b981'; // Emerald
+    let scoreTextClass = 'text-emerald-600';
+    if (securityScore < 35) {
+      scoreColor = '#ef4444'; // Rose
+      scoreTextClass = 'text-rose-600';
+    } else if (securityScore < 60) {
+      scoreColor = '#f97316'; // Orange
+      scoreTextClass = 'text-orange-500';
+    } else if (securityScore < 85) {
+      scoreColor = '#eab308'; // Yellow
+      scoreTextClass = 'text-yellow-600';
+    }
+
     const findAgeBalance = (targetAge) => {
       const row = yearlyData.find(d => d.ageP1 === targetAge);
       if (!row) return 'N/A';
@@ -1325,7 +1375,10 @@
       depletedAge: yearsDepleted === null ? null : p.ageP1 + yearsDepleted,
       balance70: findAgeBalance(70),
       balance80: findAgeBalance(80),
-      balance85: findAgeBalance(85)
+      balance85: findAgeBalance(85),
+      securityScore,
+      scoreColor,
+      scoreTextClass
     };
   }
 
@@ -1424,6 +1477,7 @@
       }
     });
 
+    renderScenariosList();
     updateUI();
   }
 
@@ -1501,62 +1555,106 @@
   function renderScenariosList() {
     const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
     const listEl = document.getElementById('scenariosList');
+    const sidebarListEl = document.getElementById('sidebarScenariosList');
     
     if (scenarios.length === 0) {
-      listEl.innerHTML = `
-        <div class="col-span-full py-12 text-center text-slate-500 italic">
+      const emptyHtml = `
+        <div class="col-span-full py-8 text-center text-slate-500 italic text-xs">
           No scenarios saved yet.
         </div>
       `;
+      if (listEl) listEl.innerHTML = emptyHtml;
+      if (sidebarListEl) sidebarListEl.innerHTML = emptyHtml;
       return;
     }
 
-    listEl.innerHTML = scenarios.map(s => {
-      // Re-calculate summary on the fly using the current calculator logic
-      // to ensure consistency between the main dashboard and the saved list.
-      const summary = getScenarioSummary(s.state);
-      const isActive = s.id === currentScenarioId;
-      return `
-      <div class="bg-slate-50 border ${isActive ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-slate-200'} rounded-xl p-4 hover:border-emerald-500 transition-colors group relative">
-        ${isActive ? '<div class="absolute -top-2 -right-2 bg-emerald-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full shadow-sm">ACTIVE</div>' : ''}
-        <div class="flex justify-between items-start mb-3">
+    if (listEl) {
+      listEl.innerHTML = scenarios.map(s => {
+        const summary = getScenarioSummary(s.state);
+        const isActive = s.id === currentScenarioId;
+        const dashOffset = 251.2 - (summary.securityScore / 100) * 251.2;
+        return `
+        <div class="bg-slate-50 border ${isActive ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-slate-200'} rounded-xl p-4 hover:border-emerald-500 transition-colors group relative flex flex-col justify-between">
+          ${isActive ? '<div class="absolute -top-2 -right-2 bg-emerald-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full shadow-sm">ACTIVE</div>' : ''}
           <div>
-            <h4 class="font-bold text-slate-900">${s.name}</h4>
-            <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Updated: ${new Date(s.updatedAt).toLocaleDateString()}</p>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="window.renameScenario('${s.id}')" class="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition" title="Rename">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            </button>
-            <button onclick="window.loadScenario('${s.id}')" class="p-1.5 ${isActive ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-600 border border-slate-200'} rounded-lg hover:bg-emerald-600 hover:text-white transition" title="Load">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            </button>
-            <button onclick="window.deleteScenario('${s.id}')" class="p-1.5 bg-white border border-slate-200 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="Delete">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex items-center gap-3">
+                <!-- Security Score Pie Ring SVG -->
+                <div class="relative w-11 h-11 flex-shrink-0 flex items-center justify-center" title="Security Score: ${summary.securityScore}/100">
+                  <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="#e2e8f0" stroke-width="12" fill="transparent" />
+                    <circle cx="50" cy="50" r="40" stroke="${summary.scoreColor}" stroke-width="12" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="${dashOffset}" stroke-linecap="round" />
+                  </svg>
+                  <span class="absolute text-[11px] font-black text-slate-800">${summary.securityScore}</span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900">${s.name}</h4>
+                  <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Updated: ${new Date(s.updatedAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="window.renameScenario('${s.id}')" class="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition" title="Rename">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                </button>
+                <button onclick="window.loadScenario('${s.id}')" class="p-1.5 ${isActive ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-600 border border-slate-200'} rounded-lg hover:bg-emerald-600 hover:text-white transition" title="Load">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </button>
+                <button onclick="window.deleteScenario('${s.id}')" class="p-1.5 bg-white border border-slate-200 rounded-lg text-rose-600 hover:bg-rose-50 transition" title="Delete">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs border-t border-slate-200 pt-3 mt-3">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Longevity:</span>
+                <span class="font-bold ${summary.depletedAge ? 'text-rose-600' : 'text-emerald-600'}">${summary.longevity}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Age 70:</span>
+                <span class="font-semibold text-slate-700">${summary.balance70}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Age 80:</span>
+                <span class="font-semibold text-slate-700">${summary.balance80}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Age 85:</span>
+                <span class="font-semibold text-slate-700">${summary.balance85}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs border-t border-slate-200 pt-3 mt-3">
-          <div class="flex justify-between">
-            <span class="text-slate-500">Longevity:</span>
-            <span class="font-bold ${summary.depletedAge ? 'text-rose-600' : 'text-emerald-600'}">${summary.longevity}</span>
+      `;
+      }).join('');
+    }
+
+    if (sidebarListEl) {
+      sidebarListEl.innerHTML = scenarios.map(s => {
+        const summary = getScenarioSummary(s.state);
+        const isActive = s.id === currentScenarioId;
+        const dashOffset = 251.2 - (summary.securityScore / 100) * 251.2;
+        return `
+        <div onclick="window.loadScenario('${s.id}')" class="cursor-pointer bg-slate-50/80 border ${isActive ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/40' : 'border-slate-200/90 hover:border-emerald-400 hover:bg-slate-100/90'} rounded-lg p-2 transition-all group relative">
+          <div class="flex items-center gap-2 mb-1.5">
+            <!-- Mini Security Score Pie SVG Ring -->
+            <div class="relative w-7 h-7 flex-shrink-0 flex items-center justify-center" title="Security Score: ${summary.securityScore}/100">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="#cbd5e1" stroke-width="14" fill="transparent" />
+                <circle cx="50" cy="50" r="40" stroke="${summary.scoreColor}" stroke-width="14" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="${dashOffset}" stroke-linecap="round" />
+              </svg>
+              <span class="absolute text-[9px] font-black text-slate-800">${summary.securityScore}</span>
+            </div>
+            <h4 class="font-bold text-[11px] text-slate-900 truncate flex-1" title="${s.name}">${s.name}</h4>
+            ${isActive ? '<span class="text-[8px] font-bold bg-emerald-500 text-white px-1 py-0.2 rounded uppercase tracking-wider shrink-0">Active</span>' : '<span class="text-[9px] text-emerald-600 group-hover:translate-x-0.5 transition-transform shrink-0 font-semibold">&rarr;</span>'}
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Age 70:</span>
-            <span class="font-semibold text-slate-700">${summary.balance70}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Age 80:</span>
-            <span class="font-semibold text-slate-700">${summary.balance80}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Age 85:</span>
-            <span class="font-semibold text-slate-700">${summary.balance85}</span>
+          <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-200/50">
+            <span class="text-slate-500 truncate">Longevity: <b class="${summary.depletedAge ? 'text-rose-600' : 'text-emerald-700'}">${summary.longevity}</b></span>
+            <span class="text-slate-400 text-[9px] truncate">@85: <b class="text-slate-700 font-normal">${summary.balance85}</b></span>
           </div>
         </div>
-      </div>
-    `;
-    }).join('');
+        `;
+      }).join('');
+    }
   }
 
   window.loadScenario = async (id) => {
@@ -1577,6 +1675,7 @@
       currentScenarioId = id;
       document.getElementById('newScenario').classList.remove('hidden');
       document.getElementById('saveScenarioText').textContent = 'Update Scenario';
+      renderScenariosList();
       updateUI();
       // Remove view=scenarios from URL when a scenario is loaded
       const params = new URLSearchParams(window.location.search);
@@ -2364,6 +2463,30 @@
       }
     }
 
+    const toggleScenariosSidebarBtn = document.getElementById('toggleScenariosSidebar');
+    const scenariosSidebarText = document.getElementById('scenariosSidebarText');
+    const scenariosSidebar = document.getElementById('scenariosSidebar');
+    const closeScenariosSidebarBtn = document.getElementById('closeScenariosSidebarBtn');
+
+    toggleScenariosSidebarBtn.addEventListener('click', () => {
+      const isHidden = scenariosSidebar.classList.toggle('hidden');
+      scenariosSidebarText.textContent = isHidden ? 'Show Scenarios Panel' : 'Hide Scenarios Panel';
+      if (!isHidden) {
+        renderScenariosList();
+      }
+      window.dispatchEvent(new Event('resize'));
+      updateTableHeight();
+    });
+
+    if (closeScenariosSidebarBtn) {
+      closeScenariosSidebarBtn.addEventListener('click', () => {
+        scenariosSidebar.classList.add('hidden');
+        scenariosSidebarText.textContent = 'Show Scenarios Panel';
+        window.dispatchEvent(new Event('resize'));
+        updateTableHeight();
+      });
+    }
+
     toggleViewBtn.addEventListener('click', () => {
       const isHorizontal = document.body.classList.toggle('layout-horizontal');
       viewModeText.textContent = isHorizontal ? 'Vertical View' : 'Horizontal View';
@@ -2393,6 +2516,10 @@
     if (params.get('view') === 'scenarios') {
       renderScenariosList();
       document.getElementById('scenariosModal').classList.remove('hidden');
+    } else if (params.get('view') === 'scenarios_sidebar' || params.get('view') === 'left_scenarios') {
+      scenariosSidebar.classList.remove('hidden');
+      scenariosSidebarText.textContent = 'Hide Scenarios Panel';
+      renderScenariosList();
     }
 
     const yearBtn = document.getElementById('viewYearlyBtn');
