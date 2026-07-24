@@ -342,6 +342,9 @@
   </div>
 </div>
 
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-6 right-6 z-[120] flex flex-col gap-2 pointer-events-none"></div>
+
 <!-- Scenario List Modal -->
 <div id="scenariosModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -1370,12 +1373,31 @@
       return fmt.format(row.endCap || 0);
     };
 
+    const p1BaseSpend = (p.p1Spend || 0) + (((p.p1Holiday || 0) + (p.p1Emergency || 0)) / 12) + (p.p1Rent || 0) - (p.p1Inc || 0);
+    const p2BaseSpend = (p.p2Spend || 0) + (((p.p2Holiday || 0) + (p.p2Emergency || 0)) / 12) + (p.p2Rent || 0) - (p.p2Inc || 0);
+    const p3BaseSpend = (p.p3Spend || 0) + (((p.p3Holiday || 0) + (p.p3Emergency || 0)) / 12) + (p.p3Rent || 0) - (p.p3Inc || 0);
+
     return {
       longevity: yearsDepleted === null ? '50+ Years' : `${yearsDepleted} Years`,
       depletedAge: yearsDepleted === null ? null : p.ageP1 + yearsDepleted,
       balance70: findAgeBalance(70),
       balance80: findAgeBalance(80),
       balance85: findAgeBalance(85),
+      startBalance: fmt.format(p.startBalance || 0),
+      secondaryCapAmount: p.secondaryCapAmount || 0,
+      secondaryCapYear: p.secondaryCapYear || 0,
+      secondaryCapFormatted: (p.secondaryCapAmount || 0) > 0 ? fmt.format(p.secondaryCapAmount) : null,
+      secondaryCap: (p.secondaryCapAmount || 0) > 0 ? `${fmt.format(p.secondaryCapAmount)} (Yr ${p.secondaryCapYear})` : 'None',
+      phase1Spend: fmt.format(Math.max(0, p1BaseSpend)),
+      phase1Years: p.p1Years !== undefined ? p.p1Years : 10,
+      phase2Spend: fmt.format(Math.max(0, p2BaseSpend)),
+      phase2Years: p.p2Years !== undefined ? p.p2Years : 10,
+      phase3Spend: fmt.format(Math.max(0, p3BaseSpend)),
+      grossReturnPercent: (p.grossReturnRate * 100).toFixed(1),
+      taxRatePercent: p.pirRate === 'custom' ? (p.taxRate * 100).toFixed(1) : p.pirRate,
+      inflationPercent: (p.inflationRate * 100).toFixed(1),
+      ageP1: p.ageP1,
+      ageP2: p.ageP2,
       securityScore,
       scoreColor,
       scoreTextClass
@@ -1385,6 +1407,35 @@
   function getScenarioSummary(state = null) {
     const p = getInputs(state);
     return calculateSummary(p);
+  }
+
+  function showToast(message, type = 'success', duration = 3000) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white transition-all duration-300 transform translate-y-2 opacity-0 ${
+      type === 'error' ? 'bg-rose-600' : 'bg-slate-900 border border-slate-700/60'
+    }`;
+    toast.innerHTML = `
+      <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger entrance animation
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-y-2', 'opacity-0');
+    });
+
+    // Auto dismiss
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 300);
+    }, duration);
   }
 
   async function saveScenario() {
@@ -1415,6 +1466,8 @@
     try {
       let scenarios = JSON.parse(localStorage.getItem(SCENARIOS_STORAGE) || '[]');
 
+      const isUpdate = !!currentScenarioId;
+
       if (currentScenarioId) {
         // Update existing
         const scenario = scenarios.find(s => s.id === currentScenarioId);
@@ -1440,11 +1493,7 @@
 
       localStorage.setItem(SCENARIOS_STORAGE, JSON.stringify(scenarios));
       renderScenariosList();
-      showDialog({
-        title: 'Success',
-        message: currentScenarioId ? 'Scenario updated!' : 'Scenario saved to local list!',
-        icon: 'success'
-      });
+      showToast(isUpdate ? 'Scenario updated successfully!' : 'Scenario saved to list!', 'success');
     } catch (e) {
       console.error(e);
       showDialog({
@@ -1604,7 +1653,27 @@
                 </button>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs border-t border-slate-200 pt-3 mt-3">
+
+            <!-- Capital & Spend Summary -->
+            <div class="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-lg border border-slate-200/80 mb-2">
+              <div>
+                <span class="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Capital & Rates</span>
+                <div class="font-semibold text-slate-800">Initial: ${summary.startBalance}</div>
+                <div class="text-[10px] text-slate-500">Inj: ${summary.secondaryCap}</div>
+                <div class="text-[10px] text-slate-600 mt-1">
+                  Ret: <b>${summary.grossReturnPercent}%</b> | Tax: <b>${summary.taxRatePercent}%</b> | Inf: <b>${summary.inflationPercent}%</b>
+                </div>
+              </div>
+              <div>
+                <span class="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Ages & Phased Spend</span>
+                <div class="text-[10px] font-medium text-slate-700">P1 Age: <b>${summary.ageP1}</b> | P2 Age: <b>${summary.ageP2}</b></div>
+                <div class="text-[10px] text-slate-600 mt-0.5">P1 (${summary.phase1Years}y): <b>${summary.phase1Spend}/mo</b></div>
+                <div class="text-[10px] text-slate-600">P2 (${summary.phase2Years}y): <b>${summary.phase2Spend}/mo</b></div>
+                <div class="text-[10px] text-slate-600">P3: <b>${summary.phase3Spend}/mo</b></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-y-1.5 gap-x-4 text-xs border-t border-slate-200 pt-2">
               <div class="flex justify-between">
                 <span class="text-slate-500">Longevity:</span>
                 <span class="font-bold ${summary.depletedAge ? 'text-rose-600' : 'text-emerald-600'}">${summary.longevity}</span>
@@ -1634,20 +1703,47 @@
         const isActive = s.id === currentScenarioId;
         const dashOffset = 251.2 - (summary.securityScore / 100) * 251.2;
         return `
-        <div onclick="window.loadScenario('${s.id}')" class="cursor-pointer bg-slate-50/80 border ${isActive ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/40' : 'border-slate-200/90 hover:border-emerald-400 hover:bg-slate-100/90'} rounded-lg p-2 transition-all group relative">
-          <div class="flex items-center gap-2 mb-1.5">
+        <div onclick="window.loadScenario('${s.id}')" class="cursor-pointer bg-slate-50/80 border ${isActive ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/40' : 'border-slate-200/90 hover:border-emerald-400 hover:bg-slate-100/90'} rounded-lg p-2 transition-all group relative space-y-1.5">
+          <div class="flex items-center gap-1.5">
             <!-- Mini Security Score Pie SVG Ring -->
-            <div class="relative w-7 h-7 flex-shrink-0 flex items-center justify-center" title="Security Score: ${summary.securityScore}/100">
+            <div class="relative w-6 h-6 flex-shrink-0 flex items-center justify-center" title="Security Score: ${summary.securityScore}/100">
               <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="40" stroke="#cbd5e1" stroke-width="14" fill="transparent" />
                 <circle cx="50" cy="50" r="40" stroke="${summary.scoreColor}" stroke-width="14" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="${dashOffset}" stroke-linecap="round" />
               </svg>
-              <span class="absolute text-[9px] font-black text-slate-800">${summary.securityScore}</span>
+              <span class="absolute text-[8px] font-black text-slate-800">${summary.securityScore}</span>
             </div>
             <h4 class="font-bold text-[11px] text-slate-900 truncate flex-1" title="${s.name}">${s.name}</h4>
             ${isActive ? '<span class="text-[8px] font-bold bg-emerald-500 text-white px-1 py-0.2 rounded uppercase tracking-wider shrink-0">Active</span>' : '<span class="text-[9px] text-emerald-600 group-hover:translate-x-0.5 transition-transform shrink-0 font-semibold">&rarr;</span>'}
           </div>
-          <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-200/50">
+
+          <!-- Capital & Spend Mini Details -->
+          <div class="text-[9.5px] leading-tight space-y-0.5 bg-white/70 p-1.5 rounded border border-slate-200/60">
+            <div class="flex justify-between text-slate-700">
+              <span class="text-slate-400">Ages:</span>
+              <span class="font-medium">P1: ${summary.ageP1} | P2: ${summary.ageP2}</span>
+            </div>
+            <div class="flex justify-between text-slate-700">
+              <span class="text-slate-400">Rates:</span>
+              <span class="font-medium">${summary.grossReturnPercent}% / ${summary.taxRatePercent}% / ${summary.inflationPercent}%</span>
+            </div>
+            <div class="flex justify-between text-slate-700">
+              <span class="text-slate-400">Cap:</span>
+              <span class="font-medium truncate">${summary.startBalance}</span>
+            </div>
+            ${summary.secondaryCapFormatted ? `
+            <div class="flex justify-between text-emerald-700 font-medium">
+              <span class="text-emerald-600/80 text-[9px]">Inj:</span>
+              <span class="truncate">${summary.secondaryCapFormatted} (Yr ${summary.secondaryCapYear})</span>
+            </div>
+            ` : ''}
+            <div class="flex justify-between text-slate-700">
+              <span class="text-slate-400">Spend:</span>
+              <span class="font-medium truncate">P1: ${summary.phase1Spend}/m</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[9.5px] pt-0.5 border-t border-slate-200/50">
             <span class="text-slate-500 truncate">Longevity: <b class="${summary.depletedAge ? 'text-rose-600' : 'text-emerald-700'}">${summary.longevity}</b></span>
             <span class="text-slate-400 text-[9px] truncate">@85: <b class="text-slate-700 font-normal">${summary.balance85}</b></span>
           </div>
@@ -2471,6 +2567,7 @@
     toggleScenariosSidebarBtn.addEventListener('click', () => {
       const isHidden = scenariosSidebar.classList.toggle('hidden');
       scenariosSidebarText.textContent = isHidden ? 'Show Scenarios Panel' : 'Hide Scenarios Panel';
+      localStorage.setItem('nz_retirement_scenarios_panel_open', isHidden ? 'false' : 'true');
       if (!isHidden) {
         renderScenariosList();
       }
@@ -2482,6 +2579,7 @@
       closeScenariosSidebarBtn.addEventListener('click', () => {
         scenariosSidebar.classList.add('hidden');
         scenariosSidebarText.textContent = 'Show Scenarios Panel';
+        localStorage.setItem('nz_retirement_scenarios_panel_open', 'false');
         window.dispatchEvent(new Event('resize'));
         updateTableHeight();
       });
@@ -2513,10 +2611,13 @@
     updateTableHeight();
 
     const params = new URLSearchParams(window.location.search);
+    const savedPanelOpen = localStorage.getItem('nz_retirement_scenarios_panel_open');
+    const isPanelSavedOpen = savedPanelOpen === 'true';
+
     if (params.get('view') === 'scenarios') {
       renderScenariosList();
       document.getElementById('scenariosModal').classList.remove('hidden');
-    } else if (params.get('view') === 'scenarios_sidebar' || params.get('view') === 'left_scenarios') {
+    } else if (params.get('view') === 'scenarios_sidebar' || params.get('view') === 'left_scenarios' || isPanelSavedOpen) {
       scenariosSidebar.classList.remove('hidden');
       scenariosSidebarText.textContent = 'Hide Scenarios Panel';
       renderScenariosList();
@@ -2545,7 +2646,7 @@
 
 <footer class="max-w-[1440px] mx-auto px-4 py-8 sm:px-6 lg:px-8 border-t border-slate-200">
   <p class="text-center text-[10px] text-slate-400">
-    Last updated: 2026-07-21 15:41 (Commit: b79c243)
+    Last updated: 2026-07-24 16:32 (Commit: 9c3ac26)
   </p>
 </footer>
 
